@@ -3,10 +3,12 @@ const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   mode: 'development',
-  entry: './src/main.js',
+  entry: {
+      "imagesort": './src/imagesort.js',
+  },
   output: {
-    filename: 'main.js',
-    path: path.resolve(__dirname, 'static')
+    path: path.resolve(__dirname, 'static'),
+    filename: '[name].js',
   },
   experiments: {
     asyncWebAssembly: true,
@@ -25,7 +27,6 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { context: './src/static', from: "*", to: "", toType: "dir"},
-	//{ from: 'node_modules/downzip/dist/downzip-sw.js', to: '.' },
       ],
     }),
   ],

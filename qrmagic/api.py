@@ -5,11 +5,9 @@ from whitenoise import WhiteNoise
 from .scanimages import ImgData, dataURI_to_file
 from .labelmaker import *
 
-app = Flask("imgsorter")
+app = Flask("qrmagic")
 
-@app.route('/<path:path>')
-def static_file(path):
-    return send_from_directory('static', path)
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
 @app.route("/api/scan-image", methods=["POST"])
 def scan_image():
@@ -26,3 +24,6 @@ def scan_image():
         "qrcodes": img.qrcode,
     }
     return jsonify(resp), 201
+
+if __name__ == "__main__":
+    app.run(debug=True, port=8000)
