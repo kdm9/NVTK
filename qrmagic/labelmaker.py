@@ -4,7 +4,7 @@ from reportlab.graphics import shapes
 from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.pdfbase.pdfmetrics import getFont, stringWidth
-import qrencode
+import qrcode
 
 import argparse
 import sys
@@ -24,9 +24,15 @@ class LabelSpec(object):
         self.spec = Specification(**self.page)
 
     def qrimg(self, data):
-        qrv, qrs, qri = qrencode.encode(str(data), level=qrencode.QR_ECLEVEL_H,
-                                        hint=qrencode.QR_MODE_8)
-        return qri
+        qr = qrcode.QRCode(
+            version=None,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=4
+        )
+        qr.add_data(str(data))
+        qr.make(fit=True)
+        return qr.make_image(fill_color="black", back_color="white")
 
     def qr_left(self, label, width, height, obj, *args, **kwargs):
         hm = self.hmargin       # horizontal margin
