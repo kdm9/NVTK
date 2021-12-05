@@ -3,7 +3,6 @@ from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 from pyzbar.pyzbar import decode, ZBarSymbol
 
-
 import logging
 from logging import ERROR, WARNING, INFO, DEBUG
 import os
@@ -25,34 +24,12 @@ def get_logger(level=INFO):
     stderr.setFormatter(logging.Formatter("%(message)s"))
     log.addHandler(stderr)
     return log
+LOG = get_logger()
 
 
 def dataURI_to_file(uri):
     with urlopen(uri) as response:
         return BytesIO(response.read())
-
-
-class ImgData(object):
-    MIDSIZE_HEIGHT = 1080
-    THUMB_HEIGHT = 100
-
-    def __init__(self, path):
-        self.path = Path(path)
-        try:
-            self.image = Image.open(path)
-            self.width, self.height = self.image.size
-        except Exception as exc:
-            LOG.error("Couldn't read image '%s'", f)
-            LOG.info("ERROR: %s", str(exc))
-        self.parse_exif()
-        self.scan_codes()
-        self.midsize = self.scale_img(h=self.MIDSIZE_HEIGHT)
-        self.thumb = self.scale_img(h=self.THUMB_HEIGHT)
-        del self.image
-
-    def __repr__(self):
-        return f"{self.path} qr={self.qrcode} dt={self.datetime} lt={self.lat} ln={self.lon} at={self.alt} cm={self.camera}"
-
 
 
 class ImgData(object):
@@ -116,25 +93,19 @@ class ImgData(object):
     
     def scan_codes(self):
         self.qrcode = None
-        codes = decode(self.image, [ZBarSymbol.QRCODE,])
-        if len(codes) > 0:
-            self.qrcode = [d.data.decode('utf8').strip() for d in codes]
-            return
         # Reduce image size until the barcode scans. For some stupid reason this
         # works pretty well.
-        #x, y = self.image.size
-        #for scalar in [0.7, 0.5, 0.3]:
-        #    LOG.debug("scalar is: %r", scalar)
-        #    img_scaled = self.image.resize((int(x*scalar), int(y*scalar)))
-        #    codes = decode('qrcode', img_scaled)
-        #    LOG.debug("got codes: %r", codes)
-        #    if codes is not None:
-        #        if len(codes) == 1:
-        #            self.qrcode = codes[0].decode('utf8')
-        #        elif len(codes) > 1:
-        #            LOG.warn("Image with more than 1 QR code: '%s'", self.image.filename)
-        #            self.qrcode = None
-        #        return
+        x, y = self.image.size
+        for scalar in [0.1, 0.5, 1.0]:
+            LOG.debug("scalar is: %r", scalar)
+            img_scaled = self.image.resize((int(x*scalar), int(y*scalar)))
+
+            codes = decode(self.image, [ZBarSymbol.QRCODE,])
+            if len(codes) > 0:
+                self.qrcode = [d.data.decode('utf8').strip() for d in codes]
+                LOG.debug("got codes: %r", self.qrcode)
+                return
+
 
 def rat2float(rat):
     """EXIF data is either a IFDRational type which we can just call float()
@@ -144,6 +115,7 @@ def rat2float(rat):
     else:
         return float(rat)
 
+
 def degrees(dms, card):
     dms = rat2float(dms[0]) + rat2float(dms[1])/60 + rat2float(dms[2])/3600
     if card.upper() in ["S", "W"]:
@@ -151,4 +123,60 @@ def degrees(dms, card):
     return dms
 
 
-LOG = get_logger()
+def cli_main():
+    extrahelp = """
+    This program detects QRcodes and other metadata in a folder of images, and
+    saves it as a TSV.
+
+    If you want a nice way of doing this in a semi-automated way, use the web UI.
+    """
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-t", "--threads", type=int, default=mp.cpu_count(),
+            help="Number of CPUs to use for image decoding/scanning")
+    ap.add_argument("-s", "--delay-seconds", type=int, default=0,
+            help="Persist a QRcode scan for N seconds (default 0).")
+    ap.add_argument("-M", "--metadata", type=argparse.FileType('w'), required=True,
+            help="Write metadata to TSV file here")
+    ap.add_argument("images", nargs="+", help="List of images")
+    args = ap.parse_args()
+
+    # Setup output
+    if args.threads > 1:
+        pool = mp.Pool(args.threads)
+        map_ = pool.imap
+    else:
+        map_ = map
+
+    metadata = [x for x in tqdm(map_(ImgData, args.images))]
+    del pool
+
+    if args.metadata:
+        print("File", "ID", "DateTime", "Lat", "Lon", "Alt", "CameraID", sep='\t', file=args.metadata)
+    last = None
+    for img in sorted(metadata, key=lambda x: (x.camera, x.datetime, x.path)):
+        this_id = "NOQRCODE"
+        if img.qrcode is None:
+            if last is not None and \
+                    img.datetime is not None and \
+                    last.datetime is not None and \
+                    (img.datetime - last.datetime).total_seconds() < args.delay_seconds:
+                this_id = last.qrcode
+        else:
+            last = img
+            this_id = img.qrcode
+
+        cam = "CAMUNKNOWN"
+        if img.camera is not None:
+            cam = img.camera
+
+        def b(val):
+            """Blank 'None's"""
+            if val is None:
+                return ""
+            else:
+                return val
+
+        if args.metadata:
+            print(img.path.resolve(), this_id, b(img.datetime), b(img.lat),
+                    b(img.lon), b(img.alt), b(img.camera), sep='\t',
+                    file=args.metadata)

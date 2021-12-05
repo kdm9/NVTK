@@ -2,3 +2,6 @@ flask
 pyzbar
 pillow
 exifread
+pylabels
+reportlab
+qrencode
