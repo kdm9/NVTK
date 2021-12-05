@@ -27,8 +27,8 @@ class LabelSpec(object):
         qr = qrcode.QRCode(
             version=None,
             error_correction=qrcode.constants.ERROR_CORRECT_H,
-            box_size=10,
-            border=4
+            box_size=20,
+            border=0
         )
         qr.add_data(str(data))
         qr.make(fit=True)
