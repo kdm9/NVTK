@@ -1,0 +1,6 @@
+Dockerfile
+node_modules/
+src/
+package*.json
+trash/
+webpack.config.js

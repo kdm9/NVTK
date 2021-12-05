@@ -1,0 +1,38 @@
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="vf">
+    <div id="form-select-imgs">
+    <form id="select-images">
+        <label for="image-input">Select files to process</label>
+        <input id="image-input" multiple @change="onImageSelect" type="file" lazy/>
+    </form>
+    <progress v-if="progress && progress.done != progress.total" id="imageProgress" :max="progress.total" :value="progress.done">{{progress.done}} images done!</progress>
+    <button v-if="progress && progress.done == progress.total" v-on:click="autofillAllIDs()" id="autofillAllIDs">Auto-fill selected images</button>
+    <button v-if="progress && progress.done == progress.total" v-on:click="getRenamedZip()" id="getZip">Download Renamed Zip</button>
+    <button v-if="progress && progress.done == progress.total" v-on:click="getRenamerScript()" id="getScript">Download Renamer Script</button>
+    <button v-if="progress && progress.done == progress.total" v-on:click="hideFilled = !hideFilled">Toggle Files with ID</button>
+    </div>
+    <div id="resulttable" v-if="images.length">
+    <table class="resulttable">
+        <thead>
+            <tr>
+                <th>Image</th><th>Sample ID</th><th>Date/Time</th><th>Latitute</th><th>Longitude</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(image, index) in images" v-if='!hideFilled || image.id == ""' :key="image.filename">
+                <th><img :src="image.image" height=100px style="height: 100px; object-fit: cover;" @click="setZoomImage(image)"/></th>
+                <th><button v-on:click="removeImage(index)"><img src="static/trash.svg" height=25px></img></button></th><th><input v-on:click="idFromPreviousIfEmpty(index)" v-model="image.id"/></th><th>{{image.datestr}}</th><th><span v-if="image.lat">{{image.lat.toFixed(5)}}</span></th><th><span v-if="image.lng">{{image.lng.toFixed(5)}}</span></th>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+    <div id="zoomimage" v-if="zoomImg"><img :src="zoomImg" @click="killZoomImage"/>
+    </div>
+</div>
+<link rel="stylesheet" type="text/css" href="main.css"/>
+<script src="main.js"></script>
+</body>
