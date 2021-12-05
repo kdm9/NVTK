@@ -27,8 +27,10 @@ var vm = new Vue({
         images: [],
         progress: false,
         zoomImg: false,
-        hideFilled: false
-        
+        hideFilled: false,
+        showconfig: false,
+        qr_sep: "_",
+        reverse_sort: false,
     },
     methods: {
         async onImageSelect(e) {
@@ -42,7 +44,14 @@ var vm = new Vue({
                 .then(function(req) {
                     if (req.status > 299) console.log(req);
                     const d = req.data;
-                    const id = d.qrcodes ? d.qrcodes.join() : "";
+                    if (d.qrcodes) {
+                        if (vm.$data.reverse_sort) {
+                            d.qrcodes.sort().reverse();
+                        } else {
+                            d.qrcodes.sort();
+                        }
+                    }
+                    const id = d.qrcodes ? d.qrcodes.join(vm.$data.qr_sep) : "";
                     const dtobj = d.datetime ? new Date(d.datetime): undefined;
                     var data = {
                         id: id,
@@ -54,6 +63,7 @@ var vm = new Vue({
                         image: d.midsize,
                         fileobj: file,
                         filename: file.name,
+                        qrcodes: d.qrcodes,
                     };
                     vm.$data.progress.done += 1;
                     vm.$data.images.push(data);

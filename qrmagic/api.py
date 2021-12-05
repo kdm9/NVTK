@@ -1,5 +1,5 @@
 import json
-from flask import Flask, request, abort, jsonify, send_from_directory, current_app
+from flask import Flask, request, abort, jsonify, send_from_directory, current_app, redirect
 from whitenoise import WhiteNoise
 
 from .scanimages import ImgData, dataURI_to_file
@@ -8,6 +8,11 @@ from .labelmaker import *
 app = Flask("qrmagic")
 
 app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
+
+@app.route("/")
+def redir_index():
+    return redirect("/index.html", 301)
+
 
 @app.route("/api/scan-image", methods=["POST"])
 def scan_image():

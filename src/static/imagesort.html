@@ -10,10 +10,11 @@
         <input id="image-input" multiple @change="onImageSelect" type="file" lazy/>
     </form>
     <progress v-if="progress && progress.done != progress.total" id="imageProgress" :max="progress.total" :value="progress.done">{{progress.done}} images done!</progress>
-    <button v-if="progress && progress.done == progress.total" v-on:click="autofillAllIDs()" id="autofillAllIDs">Auto-fill selected images</button>
-    <button v-if="progress && progress.done == progress.total" v-on:click="getRenamedZip()" id="getZip">Download Renamed Zip</button>
+    <button v-if="progress && progress.done == progress.total" v-on:click="autofillAllIDs()" id="autofillAllIDs">Auto-fill images</button>
+    <button v-if="false && progress && progress.done == progress.total" v-on:click="getRenamedZip()" id="getZip">Download Renamed Zip</button>
     <button v-if="progress && progress.done == progress.total" v-on:click="getRenamerScript()" id="getScript">Download Renamer Script</button>
     <button v-if="progress && progress.done == progress.total" v-on:click="hideFilled = !hideFilled">Toggle Files with ID</button>
+    <button id="showconfig" v-on:click="showconfig = !showconfig">Help &amp; Config</button>
     </div>
     <div id="resulttable" v-if="images.length">
     <table class="resulttable">
@@ -31,6 +32,42 @@
     </table>
     </div>
     <div id="zoomimage" v-if="zoomImg"><img :src="zoomImg" @click="killZoomImage"/>
+    </div>
+    <div class="modal" v-if="showconfig" v-on:click.self="showconfig=false">
+    <div class="modal-content">
+        <h1>Image Sorter</h1>
+        <h2>Help</h2>
+        <ol>
+            <li>Move all images you want to sort to one directory, e.g. ~/images.</li>
+            <li>Click the Browse... button at the top of the page, and select all images in this directory</li>
+            <li>The backend will now scan your images for metadata and QRcodes. Monitor the progress bar.</li>
+            <li>Wait until the progress bar disappears. The table is now sorted by time, and buttons with further actions will appear at the top (If this doesn't happen and the progress bar seems stuck, it's a bug, contact Kevin).</li>
+            <li>Go through the rows of the table. For each image:
+                <ul>
+                    <li>if the ID box is empty, click it to edit. If a QRcode was scanned correctly within N seconds (configure below), this will autofill. See also the "autofill everything" button at the top of the pages, which is basically clicking each empty box automatically.</li>
+                    <li><b>Check each ID.</b> The id is what will be used to sort the image, so make sure it's correct.</li>
+                    <li>Click the thumbnail image to expand it, if needed</li>
+                    <li>If the image should not be sorted, click the rubbish bin item to ignore it. This <b>will not delete</b> the image from your computer.</li>
+                </ul>
+            </li>
+            <li>Once you are happy with the IDs assigned to each image, click the "download renamer script" button at the top. This script is a bash script to rename all images with valid IDs (if the ID box is still empty when you download the script, the image will not be moved). To execute this script:
+                <ul>
+                    <li>Download it to the same directory as your images. If your browser says something like "this file may harm your computer", ignore it, it's just a bash script.</li>
+                    <li>Open Terminal or similar (OSX and Linux).</li>
+                    <li>cd to your image directory (<code>cd /path/to/images</code>)</li>
+                    <li>run <code>bash -xe SCRIPT_NAME.sh</code>. The script should be called renamer.sh by default but you can change this when downloading.</li>
+                    <li>For windows, you're on your own for now, contact Kevin if you need windows support and I'll make a button to download a .bat script</li>
+                </ul>
+            </li>
+        </ol>
+        <h2>Config</h2>
+        <label for="cfg_delay">Autofill QR codes for up to N seconds:</label><input id="cfg_delay" v-model="persistIDForSecs"/>
+        <br/>
+        <label for="cfg_sep">Separate multiple scanned QR codes with:</label><input id="cfg_sep" v-model="qr_sep"/>
+        <label for="cfg_revsort">Reverse sort order of multiple QR codes:</label><input id="cfg_revsort" type="checkbox" v-model="reverse_sort"/>
+        <br/>
+        <button id="closecfg" v-on:click="showconfig = false">Close</button>
+    </div>
     </div>
 </div>
 <link rel="stylesheet" type="text/css" href="./imagesort.css"/>

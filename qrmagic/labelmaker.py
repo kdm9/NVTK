@@ -3,7 +3,7 @@ from labels import Specification, Sheet
 from reportlab.graphics import shapes
 from reportlab.lib import colors
 from reportlab.lib.units import mm
-from reportlab.pdfbase.pdfmetrics import getFont
+from reportlab.pdfbase.pdfmetrics import getFont, stringWidth
 import qrencode
 
 import argparse
@@ -29,10 +29,6 @@ class LabelSpec(object):
         return qri
 
     def qr_left(self, label, width, height, obj, *args, **kwargs):
-        fnt = getFont(self.font_name).face
-        textheight = (((fnt.ascent*self.font_size) -
-                       (fnt.descent*self.font_size)) / 1000)
-
         hm = self.hmargin       # horizontal margin
         vm = self.vmargin       # vertical margin
         ht = (height - 2*vm)    # Usable height
@@ -40,20 +36,31 @@ class LabelSpec(object):
         qs = self.qrsize        # QRcode size
         assert qs <= ht
         assert ht <= height
-        assert textheight <= ht;
 
         qleft = hm
         qbottom = vm + (ht - qs) / 2
         label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
 
         tleft = qleft + qs + hm
-        tbottom = vm + (ht - textheight)/2
-        label.add(shapes.String(tleft, tbottom, str(obj), fontName=self.font_name, fontSize=self.font_size))
+        tavail = width - tleft - hm
+        for font_size in range(self.font_size, 2, -1):
+            twidth = stringWidth(str(obj), self.font_name, font_size)
+            fnt = getFont(self.font_name).face
+            textheight = (((fnt.ascent*font_size) -
+                           (fnt.descent*font_size)) / 1000)
+            if textheight > ht:
+                continue
+            tbottom = vm + (ht - textheight)/2
+            if twidth < tavail:
+                break
+        else:
+            print("WARNING: couldn't fit", str(obj), "into", f"{tavail / mm:0.1f}", "mm space availabe")
+        label.add(shapes.String(tleft, tbottom, str(obj), fontName=self.font_name, fontSize=font_size))
 
 class L7636(LabelSpec):
     description = "Mid-sized rounded rectangular labels (45x22mm) in sheets of 4x12"
     font_name = "Helvetica"
-    font_size = 14
+    font_size = 15
     name = "L7636"
     qrsize = 16*mm
     hmargin = 1.2*mm
@@ -102,7 +109,7 @@ class L7658(LabelSpec):
     }
 
 class CryoLabel(LabelSpec):
-    description = "Cryo Labels for screw-cap eppies. White on left half, clear on right."
+    description = "Cryo Labels for screw-cap eppies. White on left half, clear on right. 63mmx15mm in sheets of 3x18"
     font_name = "Helvetica"
     font_size = 12
     name = "CryoLabel"
@@ -133,7 +140,23 @@ def generate_labels(labeltype, text_source, copies=1, border=True):
     return sheet 
 
 def main():
-    ap = argparse.ArgumentParser()
+    morehelp  = """
+There are four modes of operation: two for your assistance, and two actually functional modes
+
+To simply list the support Avery label types:
+
+    labelmaker --list-label-types
+
+To make a demo page of labels for each label type:
+
+    labelmaker --demo OUTDIR
+
+To actually do anything, you need one of the following:
+
+    labelmaker --output labels.pdf --id-file file_of_ids.txt [--copies N]
+    labelmaker --output labels.pdf --id-format 'KDM{:04d}' --id-start 1 --id-end 2000 [--copies N]
+"""
+    ap = argparse.ArgumentParser(epilog=morehelp, formatter_class=argparse.RawDescriptionHelpFormatter, prog="labelmaker")
     ap.add_argument("--demo", type=str, metavar="DIR",
             help="Write a demo (10 labels, four reps per label) for each label type to DIR.")
     ap.add_argument("--list-label-types", action="store_true",
