@@ -5,4 +5,4 @@ pillow
 exifread
 pylabels
 reportlab
-qrencode
+qrcode
