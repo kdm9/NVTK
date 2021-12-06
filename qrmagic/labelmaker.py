@@ -20,6 +20,9 @@ __all__ = [
 ]
 
 class LabelSpec(object):
+    hmargin = 2*mm
+    vmargin = 2*mm
+
     def __init__(self):
         self.spec = Specification(**self.page)
 
@@ -69,8 +72,6 @@ class L7636(LabelSpec):
     font_size = 15
     name = "L7636"
     qrsize = 16*mm
-    hmargin = 1.2*mm
-    vmargin = 1.2*mm
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 4, "rows": 12,
@@ -86,14 +87,12 @@ class L3667(LabelSpec):
     font_size = 12
     name = "L3667"
     qrsize = 13*mm
-    hmargin = 1*mm
-    vmargin = 1*mm
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 4, "rows": 16,
             "label_width": 48.5, "label_height": 16.9,
             "corner_radius": 0,
-            "left_margin": 7, "top_margin": 13,
+            "left_margin": 8, "top_margin": 13,
             "row_gap": 0, "column_gap": 0,
     }
 
@@ -103,8 +102,6 @@ class L7658(LabelSpec):
     font_size = 11
     name = "L7658"
     qrsize = 8*mm
-    hmargin = 1*mm
-    vmargin = 1*mm
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 7, "rows": 27,
@@ -120,8 +117,6 @@ class CryoLabel(LabelSpec):
     font_size = 12
     name = "CryoLabel"
     qrsize = 10*mm
-    hmargin = 1*mm
-    vmargin = 1*mm
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 3, "rows": 18,
@@ -144,6 +139,7 @@ def generate_labels(labeltype, text_source, copies=1, border=True):
     for obj in text_source:
         sheet.add_label(obj, count=copies)
     return sheet 
+
 
 def main():
     morehelp  = """
