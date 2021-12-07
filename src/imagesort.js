@@ -8,9 +8,35 @@ import { ReadableStream,  WritableStream } from "web-streams-polyfill/ponyfill";
 streamSaver.ReadableStream = ReadableStream;
 streamSaver.WritableStream = WritableStream;
 
-axiosRetry(axios, { retries: 6, retryDelay: axiosRetry.exponentialDelay });
-axiosRateLimit(axios, {maxRPS: 4})
+axios.default.timeout = 10000;
+axiosRetry(axios, { retries: 4, retryDelay: axiosRetry.exponentialDelay });
+axiosRateLimit(axios, {maxRPS: 1})
  
+const MAX_REQUESTS_COUNT = 50
+const INTERVAL_MS = 10
+let PENDING_REQUESTS = 0
+
+axios.interceptors.request.use(function (config) {
+	  return new Promise((resolve, reject) => {
+		      let interval = setInterval(() => {
+				    if (PENDING_REQUESTS < MAX_REQUESTS_COUNT) {
+						    PENDING_REQUESTS++
+						    clearInterval(interval)
+						    resolve(config)
+						  } 
+				  }, INTERVAL_MS)
+		    })
+})
+
+axios.interceptors.response.use(function (response) {
+	  PENDING_REQUESTS = Math.max(0, PENDING_REQUESTS - 1)
+	  return Promise.resolve(response)
+}, function (error) {
+	  PENDING_REQUESTS = Math.max(0, PENDING_REQUESTS - 1)
+	  return Promise.reject(error)
+})
+
+
 function readFile(file){
   return new Promise((resolve, reject) => {
     var fr = new FileReader();  
@@ -72,7 +98,10 @@ var vm = new Vue({
                     if (vm.$data.progress.done == vm.$data.progress.total) {
                         vm.$data.images.sort((a1, a2) => {return a1.datetime - a2.datetime;})
                     }
-                });
+                }).catch(function(err) {
+                    console.log(err);
+                    vm.$data.progress.done += 1;
+		});
             }
         },
         async getRenamedZip() {
