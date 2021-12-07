@@ -1,14 +1,16 @@
 import Vue from 'vue/dist/vue.js';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import axiosRateLimit from 'axios-rate-limit';
 import { Reader, Writer } from '@transcend-io/conflux';
 import streamSaver from 'streamsaver';
 import { ReadableStream,  WritableStream } from "web-streams-polyfill/ponyfill";
 streamSaver.ReadableStream = ReadableStream;
 streamSaver.WritableStream = WritableStream;
 
-axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
-
+axiosRetry(axios, { retries: 6, retryDelay: axiosRetry.exponentialDelay });
+axiosRateLimit(axios, {maxRPS: 4})
+ 
 function readFile(file){
   return new Promise((resolve, reject) => {
     var fr = new FileReader();  

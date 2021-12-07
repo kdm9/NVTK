@@ -21,7 +21,7 @@ __all__ = [
 
 class LabelSpec(object):
     hmargin = 2*mm
-    vmargin = 2*mm
+    vmargin = 1.2*mm
 
     def __init__(self):
         self.spec = Specification(**self.page)
@@ -177,6 +177,8 @@ To actually do anything, you need one of the following:
             help="First ID number (default 1)")
     ap.add_argument("--id-end", type=int, default=100, metavar="N",
             help="Last ID number (default 100)")
+    ap.add_argument("--border", action="store_true",
+            help="Show a border around each label.")
     args = ap.parse_args()
 
     if args.demo is not None:
@@ -208,7 +210,7 @@ To actually do anything, you need one of the following:
     else:
         ids = [args.id_format.format(i) for i in range(args.id_start, args.id_end+1)]
 
-    sht = generate_labels(label_types[args.label_type](), ids, copies=args.copies)
+    sht = generate_labels(label_types[args.label_type](), ids, copies=args.copies, border=args.border)
     sht.save(args.output)
 
 
