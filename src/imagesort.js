@@ -2,17 +2,21 @@ import Vue from 'vue/dist/vue.js';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import axiosRateLimit from 'axios-rate-limit';
+import { quote } from 'shell-quote';
+
+/*
 import { Reader, Writer } from '@transcend-io/conflux';
 import streamSaver from 'streamsaver';
 import { ReadableStream,  WritableStream } from "web-streams-polyfill/ponyfill";
 streamSaver.ReadableStream = ReadableStream;
 streamSaver.WritableStream = WritableStream;
+*/
 
 axios.default.timeout = 10000;
 axiosRetry(axios, { retries: 4, retryDelay: axiosRetry.exponentialDelay });
 axiosRateLimit(axios, {maxRPS: 1})
  
-const MAX_REQUESTS_COUNT = 50
+const MAX_REQUESTS_COUNT = 5
 const INTERVAL_MS = 10
 let PENDING_REQUESTS = 0
 
@@ -105,7 +109,8 @@ var vm = new Vue({
             }
         },
         async getRenamedZip() {
-            const { readable, writable } = new Writer();
+            alert("Not implemented");
+            /*const { readable, writable } = new Writer();
             const writer = writable.getWriter();
             const fileStream = streamSaver.createWriteStream('renamed_images.zip');
             console.log(fileStream);
@@ -118,14 +123,14 @@ var vm = new Vue({
                 writer.write(filename, img.fileobj);
             }
             readable.pipeTo(fileStream);
-            writer.close()
+            writer.close();*/
         },
         async getRenamerScript() {
             let script = ['relocate() { mkdir -p "$(dirname "$2")"; mv "$1" "$2";}', ];
             for (let i in this.images) {
                 const img = this.images[i];
                 if (img.id != "") {
-                    script.push(`relocate ${img.filename} ${img.id}/${img.filename}`);
+                    script.push(quote(["relocate",  img.filename, `${img.id}/${img.filename}`]));
                 }
             }
             // Download script
