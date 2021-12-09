@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 class LabelSpec(object):
-    hmargin = 2*mm
+    hmargin = 1.5*mm
     vmargin = 1.2*mm
 
     def __init__(self):
@@ -43,7 +43,9 @@ class LabelSpec(object):
         ht = (height - 2*vm)    # Usable height
         wd = (width - 2*hm)     # Usable width
         qs = self.qrsize        # QRcode size
-        assert qs <= ht
+        if qs > ht:
+            print(f"Scaling down QR size ({qs/mm:0.1f}mm) to available height ({ht/mm:0.1f}mm)")
+            qs = ht
         assert ht <= height
 
         qleft = hm
