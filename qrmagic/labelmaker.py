@@ -5,6 +5,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.pdfbase.pdfmetrics import getFont, stringWidth
 import qrcode
+from tqdm import tqdm
 
 import argparse
 import sys
@@ -22,9 +23,16 @@ __all__ = [
 class LabelSpec(object):
     hmargin = 1.5*mm
     vmargin = 1.2*mm
+    default_layout = "qr_left"
+    layouts = ["qr_left", "qr_right"]
 
-    def __init__(self):
+    def __init__(self, layout=None):
         self.spec = Specification(**self.page)
+        if layout is None:
+            layout = self.default_layout
+        if layout not in self.layouts:
+            raise ValueError(f"Invalid layout {layout}")
+        self.layout = layout
 
     def qrimg(self, data):
         qr = qrcode.QRCode(
@@ -37,7 +45,21 @@ class LabelSpec(object):
         qr.make(fit=True)
         return qr.make_image(fill_color="black", back_color="white")
 
-    def qr_left(self, label, width, height, obj, *args, **kwargs):
+    def fit_font(self, text, available_width, available_height):
+        for font_size in range(self.font_size, 2, -1):
+            twidth = stringWidth(text, self.font_name, font_size)
+            if twidth > available_width:
+                continue
+            fnt = getFont(self.font_name).face
+            textheight = (((fnt.ascent*font_size) -
+                           (fnt.descent*font_size)) / 1000)
+            if textheight > available_height:
+                continue
+            return font_size, twidth, textheight
+        print("WARNING: couldn't fit", str(obj), "into", f"{tavail / mm:0.1f}", "mm space availabe")
+
+    def make_label(self, label, width, height, obj, *args, **kwargs):
+        text = str(obj)
         hm = self.hmargin       # horizontal margin
         vm = self.vmargin       # vertical margin
         ht = (height - 2*vm)    # Usable height
@@ -48,25 +70,28 @@ class LabelSpec(object):
             qs = ht
         assert ht <= height
 
-        qleft = hm
-        qbottom = vm + (ht - qs) / 2
-        label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
+        if self.layout == "qr_left":
+            qleft = hm
+            qbottom = vm + (ht - qs) / 2
+            label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
 
-        tleft = qleft + qs + hm
-        tavail = width - tleft - hm
-        for font_size in range(self.font_size, 2, -1):
-            twidth = stringWidth(str(obj), self.font_name, font_size)
-            fnt = getFont(self.font_name).face
-            textheight = (((fnt.ascent*font_size) -
-                           (fnt.descent*font_size)) / 1000)
-            if textheight > ht:
-                continue
-            tbottom = vm + (ht - textheight)/2
-            if twidth < tavail:
-                break
-        else:
-            print("WARNING: couldn't fit", str(obj), "into", f"{tavail / mm:0.1f}", "mm space availabe")
-        label.add(shapes.String(tleft, tbottom, str(obj), fontName=self.font_name, fontSize=font_size))
+            tleft = qleft + qs + hm
+            tavail = wd - tleft
+            fsz, tw, th = self.fit_font(text, tavail, ht)
+            tbottom = vm + (ht - th)/2
+            label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
+        elif self.layout == "qr_right":
+            qleft = width - qs - hm
+            qbottom = vm + (ht - qs) / 2
+            label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
+
+            tright = qleft - hm
+            tavail = tright - hm
+            fsz, tw, th = self.fit_font(text, tavail, ht)
+            tleft = tright - tw
+            tbottom = vm + (ht - th)/2
+            label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
+
 
 class L7636(LabelSpec):
     description = "Mid-sized rounded rectangular labels (45x22mm) in sheets of 4x12"
@@ -103,7 +128,7 @@ class L7658(LabelSpec):
     font_name = "Helvetica"
     font_size = 11
     name = "L7658"
-    qrsize = 8*mm
+    qrsize = 7.5*mm
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 7, "rows": 27,
@@ -119,6 +144,7 @@ class CryoLabel(LabelSpec):
     font_size = 12
     name = "CryoLabel"
     qrsize = 10*mm
+    layouts = ["qr_left", ]
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 3, "rows": 18,
@@ -137,11 +163,10 @@ label_types = {
 
 
 def generate_labels(labeltype, text_source, copies=1, border=True):
-    sheet = Sheet(labeltype.spec, labeltype.qr_left, border=border)
-    for obj in text_source:
+    sheet = Sheet(labeltype.spec, labeltype.make_label, border=border)
+    for obj in tqdm(text_source):
         sheet.add_label(obj, count=copies)
     return sheet 
-
 
 def main():
     morehelp  = """
@@ -167,6 +192,8 @@ To actually do anything, you need one of the following:
             help="Write a list of label types.")
     ap.add_argument("--label-type", choices=list(label_types.keys()),
             help="Label type.")
+    ap.add_argument("--layout", default=None,
+            help="Label layout. See --list-label-types for a list of supported layouts per label type.")
     ap.add_argument("--copies", type=int, default=1, metavar="N",
             help="Create N copies of each label.")
     ap.add_argument("--output", type=argparse.FileType("wb"), metavar="FILE",
@@ -190,7 +217,7 @@ To actually do anything, you need one of the following:
         sys.exit(0)
     if args.list_label_types:
         for name, labelclass in label_types.items():
-            print(f"{name}:  {labelclass.description}")
+            print(f"{name}:  {labelclass.description} (supports layouts: {', '.join(labelclass.layouts)})")
         sys.exit(0)
     if args.label_type is None and args.id_file is None and args.output is None and args.id_format is None:
         ap.print_help()
@@ -212,7 +239,7 @@ To actually do anything, you need one of the following:
     else:
         ids = [args.id_format.format(i) for i in range(args.id_start, args.id_end+1)]
 
-    sht = generate_labels(label_types[args.label_type](), ids, copies=args.copies, border=args.border)
+    sht = generate_labels(label_types[args.label_type](layout=args.layout), ids, copies=args.copies, border=args.border)
     sht.save(args.output)
 
 
