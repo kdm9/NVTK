@@ -1,0 +1,131 @@
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+        crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+        crossorigin=""/>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"
+        crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+       crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+       crossorigin=""></script>
+    <script src="leaflet-providers.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" crossorigin="" />
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap5.css" crossorigin="" />
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive5.js"></script>
+</head>
+<body>
+
+<div id="map" style="height: 60%;"></div>
+
+<div id="buttons" style="height: 30px">
+    <button type="button" id="btnSwitchBasemap">Switch Basemap</button>
+    <button type="button" id="btnFullMap">Maximise Map</button>
+    <button type="button" id="btnHalfMap">Half-screen Map</button>
+    <button type="button" id="btnNoMap">Minimise Map</button>
+</div>
+<div id="maintable" style="overflow: auto;">
+<table id="table_id" class="display">
+</table>
+</div>
+
+<script> 
+var samples = 
+[{"id":"OAKG0088","lat":47.4,"lng":0.6833,"dataset":"KG","sample_name":"CYR","country_code":"FRA","species":"Arabidopsis thaliana"},{"id":"OAKG0108","lat":48.5167,"lng":-4.0667,"dataset":"KG","sample_name":"LDV-18","country_code":"FRA","species":"Arabidopsis thaliana"},{"id":"OAKG0139","lat":48.5167,"lng":-4.0667,"dataset":"KG","sample_name":"LDV-46","country_code":"FRA","species":"Arabidopsis thaliana"},{"id":"OAKG0159","lat":47.35,"lng":3.9333,"dataset":"KG","sample_name":"MAR2-3","country_code":"FRA","species":"Arabidopsis thaliana"},{"id":"OAKG0265","lat":44.65,"lng":-1.1667,"dataset":"KG","sample_name":"PYL-6","country_code":"FRA","species":"Arabidopsis thaliana"},{"id":"OAKG0350","lat":46.6667,"lng":4.1167,"dataset":"KG","sample_name":"TOU-A1-88","country_code":"FRA","species":"Arabidopsis thaliana"},{"id":"OAKG0351","lat":46.6667,"lng":4.1167,"dataset":"KG","sample_name":"TOU-A1-89","country_code":"FRA","species":"Arabidopsis thaliana"},{"id":"OAKG0403","lat":49.3667,"lng":16.2667,"dataset":"KG","sample_name":"Zdarec3","country_code":"CZE","species":"Arabidopsis thaliana"},{"id":"OAKG0410","lat":49.4211,"lng":16.3497,"dataset":"KG","sample_name":"Doubravnik7","country_code":"CZE","species":"Arabidopsis thaliana"},{"id":"OAKG0424","lat":49.4112,"lng":16.2815,"dataset":"KG","sample_name":"Draha2","country_code":"CZE","species":"Arabidopsis thaliana"},{"id":"OAKG0428","lat":49.403,"lng":16.232,"dataset":"KG","sample_name":"Borky1","country_code":"CZE","species":"Arabidopsis thaliana"},{"id":"OAKG0430","lat":47,"lng":15.5,"dataset":"KG","sample_name":"Gr-1","country_code":"AUT","species":"Arabidopsis thaliana"},{"id":"OAKG0470","lat":40.8313,"lng":-87.735,"dataset":"KG","sample_name":"BRR4","country_code":"USA","species":"Arabidopsis thaliana"},{"id":"OAKG0476","lat":40.8313,"lng":-87.735,"dataset":"KG","sample_name":"BRR12","country_code":"USA","species":"Arabidopsis thaliana"},{"id":"OAKG0484","lat":40.8313,"lng":-87.735,"dataset":"KG","sample_name":"BRR23","country_code":"USA","species":"Arabidopsis thaliana"},{"id":"OAKG0504","lat":40.8313,"lng":-87.735,"dataset":"KG","sample_name":"BRR57","country_code":"USA","species":"Arabidopsis thaliana"},{"id":"OAKG0506","lat":40.8313,"lng":-87.735,"dataset":"KG","sample_name":"BRR60","country_code":"USA","species":"Arabidopsis thaliana"},{"id":"OAKG0531","lat":40.8313,"lng":-87.735,"dataset":"KG","sample_name":"BRR107","country_code":"USA","species":"Arabidopsis thaliana"},{"id":"OAKG0544","lat":40.9076,"lng":-73.2089,"dataset":"KG","sample_name":"LI-WP-039","country_code":"USA","species":"Arabidopsis thaliana"},{"id":"OAKG0546","lat":40.9076,"lng":-73.2089,"dataset":"KG","sample_name":"LI-WP-041","country_code":"USA","species":"Arabidopsis thaliana"},{"id":"OAKG0628","lat":40.7777,"lng":-72.9069,"dataset":"KG","sample_name":"LI-OF-061","country_code":"USA","species":"Arabidopsis thaliana"},{"id":"OAKG0630","lat":40.7777,"lng":-72.9069,"dataset":"KG","sample_name":"LI-OF-065","country_code":"USA","species":"Arabidopsis thaliana"},{"id":"OAKG0680","lat":40.9447,"lng":-72.8615,"dataset":"KG","sample_name":"LI-RR-096","country_code":"USA","species":"Arabidopsis thaliana"}];
+
+
+var map = L.map('map').setView([0, 0], 1);
+//L.tileLayer.provider('Stamen.TerrainBackground').addTo(map);
+
+var terrain_basemap = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain-background/{z}/{x}/{y}{r}.{ext}', {
+	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	subdomains: 'abcd',
+	minZoom: 0,
+	maxZoom: 18,
+	ext: 'png'
+});
+
+var osm_basemap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	maxZoom: 19,
+	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+
+var current_basemap = "terrain";
+
+terrain_basemap.addTo(map);
+
+var markers = L.markerClusterGroup();
+
+samples 
+.filter(function (p) {
+    return ('lat' in p && 'lng' in p);
+})
+.forEach(function(p) {
+    var marker = L.marker([p.lat, p.lng]);
+    marker.on('click', function (e) {
+        //destroy any old popups that might be attached
+        if (marker._popup != undefined) {
+            marker.unbindPopup();
+        }
+        var pop = L.popup()
+            .setLatLng(this._latlng)
+            .setContent(`<a href="${p.id}.html"  target="_blank"><h1>${p.id}</h1></a>`)
+            .openOn(map);
+    });
+    markers.addLayer(marker);
+});
+
+map.addLayer(markers);
+map.fitBounds(markers.getBounds());
+
+var table = $('#table_id').DataTable({
+    "responsive": true,
+    "scrollY": "30%",
+    "scrollCollapse": true,
+    "paging": false,
+    "data": samples,
+    "columns": [
+        { "data": "id", "title": "ID", "render": function (data, type, row, meta ) {
+            return `<a href="${data}.html" target="_blank">${data}</a>`;     } },
+        { "data": "lat", "title": "Latitude", "defaultContent": ""},
+        { "data": "lng", "title": "Longitude", "defaultContent": ""},
+        { "data": "species", "title": "Species", "defaultContent": ""}
+    ]
+});
+
+$('#btnSwitchBasemap').on('click', function() {
+    if (current_basemap == "terrain") {
+        map.removeLayer(terrain_basemap);
+        osm_basemap.addTo(map);
+        current_basemap = "osm";
+    } else {
+        map.removeLayer(osm_basemap);
+        terrain_basemap.addTo(map);
+        current_basemap = "terrain";
+    }
+});
+
+$('#btnFullMap').on('click', function () {
+    $('#map').css({height: "95%", display: "block"});
+    setTimeout(function(){ map.invalidateSize()}, 200);
+});
+
+$('#btnHalfMap').on('click', function () {
+    $('#map').css({height: "60%", display: "block"})
+    setTimeout(function(){ map.invalidateSize()}, 200);
+});
+
+$('#btnNoMap').on('click', function () {
+    $('#map').css({display: "none"})
+});
+
+</script>
+</body>
