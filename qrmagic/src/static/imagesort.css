@@ -1,0 +1,84 @@
+#vf {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+#form-select-imgs {
+    display: flex;
+    flex: 0 1 auto;
+}
+#resulttable {
+    overflow: scroll;
+    display=flex;
+    flex: 1 1 auto;
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    min-width: 400px;
+}
+#resulttable thead tr {
+    color: #ffffff;
+    text-align: left;
+}
+#resulttable th,
+#resulttable td {
+    padding: 6px 5px;
+}
+
+#resulttable tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+#resulttable tbody tr:last-of-type {
+    border-bottom: 2px solid #009879;
+}
+
+#zoomimage {
+    position: absolute;
+    float: left;
+    left: 60%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 70%;
+    max-width: 80%;
+    object-fit: contain;
+}
+
+#zoomimage img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+#config {
+    position: absolute;
+    float: left;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 90%;
+    max-width: 90%;
+    object-fit: contain;
+}
+
+
+.modal {
+  position: fixed; /* Stay in place */
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 40%; 
+}
