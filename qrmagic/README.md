@@ -2,6 +2,14 @@
 
 Some magical semi-automated tools to better handle sample tracking during fieldwork.
 
+To install:
+
+```
+git clone https://github.com/kdm9/NVTK.git
+cd NVTK/qrmagic
+python3 -m pip install -r requirements.txt
+python3 -m pip install -e .
+```
 
 ## QR Code Label Printing
 
