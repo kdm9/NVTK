@@ -22,6 +22,7 @@ __all__ = [
 
 class LabelSpec(object):
     hmargin = 1.5*mm
+    hgap = 1*mm
     vmargin = 1.2*mm
     default_layout = "qr_left"
     layouts = ["qr_left", "qr_right"]
@@ -62,6 +63,7 @@ class LabelSpec(object):
         text = str(obj)
         hm = self.hmargin       # horizontal margin
         vm = self.vmargin       # vertical margin
+        hg = self.hgap          # inter-element gap
         ht = (height - 2*vm)    # Usable height
         wd = (width - 2*hm)     # Usable width
         qs = self.qrsize        # QRcode size
@@ -75,7 +77,7 @@ class LabelSpec(object):
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
 
-            tleft = qleft + qs + hm
+            tleft = qleft + qs + hg
             tavail = wd - tleft
             fsz, tw, th = self.fit_font(text, tavail, ht)
             tbottom = vm + (ht - th)/2
@@ -85,7 +87,7 @@ class LabelSpec(object):
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
 
-            tright = qleft - hm
+            tright = qleft - hg
             tavail = tright - hm
             fsz, tw, th = self.fit_font(text, tavail, ht)
             tleft = tright - tw
@@ -141,16 +143,18 @@ class L7658(LabelSpec):
 class CryoLabel(LabelSpec):
     description = "Cryo Labels for screw-cap eppies. White on left half, clear on right. 63mmx15mm in sheets of 3x18"
     font_name = "Helvetica"
-    font_size = 12
+    font_size = 10
     name = "CryoLabel"
-    qrsize = 10*mm
+    qrsize = 9*mm
+    hmargin = 2.5*mm
+    vmargin = 2*mm
     layouts = ["qr_left", ]
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 3, "rows": 18,
             "label_width": 63, "label_height": 15,
             "corner_radius": 1,
-            "left_margin": 6.7, "top_margin": 20,
+            "left_margin": 7, "top_margin": 21,
             "row_gap": 0, "column_gap": 3,
     }
 
