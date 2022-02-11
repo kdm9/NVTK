@@ -13,6 +13,7 @@ import sys
 __all__ = [
         "label_types",
         "CryoLabel",
+        "LCRY1700"
         "L7658",
         "L3667",
         "L7636",
@@ -61,6 +62,8 @@ class LabelSpec(object):
 
     def make_label(self, label, width, height, obj, *args, **kwargs):
         text = str(obj)
+        if text == "" or text == ".":
+            return
         hm = self.hmargin       # horizontal margin
         vm = self.vmargin       # vertical margin
         hg = self.hgap          # inter-element gap
@@ -93,6 +96,21 @@ class LabelSpec(object):
             tleft = tright - tw
             tbottom = vm + (ht - th)/2
             label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
+        elif self.layout == "top_half":
+            qs = qs/2
+            ht = ht/2
+            qleft = width - qs - hm
+            qbottom = vm + ht + (ht - qs) / 2
+            tright = qleft - hg
+            tavail = tright - hm
+            fsz, tw, th = self.fit_font(text, tavail, ht)
+            tleft = tright - tw
+            tbottom = vm + ht + (ht - th)/2
+            hspace = width - (hm + tw + hg + qs + hm)
+            qleft -= hspace/2
+            tleft -= hspace/2
+            label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
+            label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
 
 
 class L7636(LabelSpec):
@@ -122,6 +140,23 @@ class L3667(LabelSpec):
             "label_width": 48.5, "label_height": 16.9,
             "corner_radius": 0,
             "left_margin": 8, "top_margin": 13,
+            "row_gap": 0, "column_gap": 0,
+    }
+
+
+class L3666(LabelSpec):
+    description = "Mid-sized rectangular labels (38x22mm) in sheets of 5x13"
+    font_name = "Helvetica"
+    font_size = 12
+    name = "L3666"
+    qrsize = 13*mm
+    layouts = ["qr_left", "qr_right", "top_half"]
+    page = {
+            "sheet_width": 210, "sheet_height": 297,
+            "columns": 5, "rows": 13,
+            "label_width": 38, "label_height": 21.2,
+            "corner_radius": 0,
+            "left_margin": 10, "top_margin": 10.7,
             "row_gap": 0, "column_gap": 0,
     }
 
@@ -158,10 +193,31 @@ class CryoLabel(LabelSpec):
             "row_gap": 0, "column_gap": 3,
     }
 
+class LCRY1700(LabelSpec):
+    description = "Cryo Labels for screw-cap eppies."
+    font_name = "Helvetica"
+    font_size = 10
+    name = "LCRY1700"
+    qrsize = 8*mm
+    hmargin = 1.8*mm
+    vmargin = 1.8*mm
+    layouts = ["qr_left", "qr_right"]
+    page = {
+            "sheet_width": 215, "sheet_height": 279,
+            "columns": 5, "rows": 17,
+            "label_width": 32.5, "label_height": 12.5,
+            "corner_radius": 3,
+            "left_margin": 19.5, "top_margin": 6.5,
+            "row_gap": 3, "column_gap": 3.1,
+    }
+
+
 label_types = {
     "L7636": L7636,
     "L3667": L3667,
+    "L3666": L3666,
     "L7658": L7658,
+    "LCRY1700": LCRY1700,
     "CryoLabel": CryoLabel,
 }
 
