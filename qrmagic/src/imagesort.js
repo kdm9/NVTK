@@ -1,4 +1,5 @@
 import Vue from 'vue/dist/vue.js';
+import ndjsonParser from 'ndjson-parse';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import axiosRateLimit from 'axios-rate-limit';
@@ -65,6 +66,41 @@ var vm = new Vue({
         reverse_sort: false,
     },
     methods: {
+
+        async onJSONUpload(e) {
+            var files = e.target.files || e.dataTransfer.files;
+            if (!files.length) return;
+            const jsonfile = files[0];
+            const content = await jsonfile.text();
+            const all_parsed = ndjsonParser(content);
+            this.progress = {done: 0, total: all_parsed.length};
+            for (let [i, d] of Object.entries(all_parsed)) {
+                if (d.qrcodes) {
+                    if (vm.$data.reverse_sort) {
+                        d.qrcodes.sort().reverse();
+                    } else {
+                        d.qrcodes.sort();
+                    }
+                }
+                const id = d.qrcodes ? d.qrcodes.join(vm.$data.qr_sep) : "";
+                const dtobj = d.datetime ? new Date(d.datetime): undefined;
+                var data = {
+                    id: id,
+                    lat: d.lat,
+                    lng: d.lng,
+                    alt: d.alt,
+                    datetime: dtobj,
+                    datestr: dtobj ? dtobj.toISOString() : "",
+                    image: d.midsize,
+                    filename: d.filename,
+                    qrcodes: d.qrcodes,
+                };
+                vm.$data.images.push(data);
+                vm.$data.progress.done += 1;
+            }
+            vm.$data.images.sort((a1, a2) => {return a1.datetime - a2.datetime;})
+        },
+
         async onImageSelect(e) {
             var files = e.target.files || e.dataTransfer.files;
             if (!files.length) return;
@@ -93,7 +129,6 @@ var vm = new Vue({
                         datetime: dtobj,
                         datestr: dtobj ? dtobj.toISOString() : "",
                         image: d.midsize,
-                        fileobj: file,
                         filename: file.name,
                         qrcodes: d.qrcodes,
                     };
@@ -105,9 +140,10 @@ var vm = new Vue({
                 }).catch(function(err) {
                     console.log(err);
                     vm.$data.progress.done += 1;
-		});
+                });
             }
         },
+
         async getRenamedZip() {
             alert("Not implemented");
             /*const { readable, writable } = new Writer();

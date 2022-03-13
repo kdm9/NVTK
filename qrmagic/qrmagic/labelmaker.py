@@ -13,7 +13,7 @@ import sys
 __all__ = [
         "label_types",
         "CryoLabel",
-        "LCRY1700"
+        "LCRY1700",
         "L7658",
         "L3667",
         "L7636",

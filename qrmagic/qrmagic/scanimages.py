@@ -57,10 +57,10 @@ class ImgData(object):
             self.filename = filename
         try:
             self.image = Image.open(filedata)
-            self.width, self.height = self.image.size
-            self.parse_exif()
-            self.scan_codes()
             self.midsize = self.scale_img(h=self.MIDSIZE_HEIGHT)
+            self.width, self.height = self.image.size
+            self.scan_codes()
+            self.parse_exif()
             del self.image
         except Exception as exc:
             LOG.error("Couldn't read or process image '%s'", self.filename)
@@ -69,6 +69,8 @@ class ImgData(object):
     def scale_img(self,h):
         try:
             x, y = self.image.size
+            if x == 0 or y == 0:
+                return None
             scalar = 1 if h > y else h/y
             img_scaled = self.image.resize((int(round(x*scalar)), int(round(y*scalar))))
             buf = BytesIO()
@@ -144,7 +146,11 @@ def rat2float(rat):
     """EXIF data is either a IFDRational type which we can just call float()
     on, or a tuple of (num, denom) which we can't."""
     if isinstance(rat, tuple):
-        return float(rat[0]) / float(rat[1])
+        n, d = float(rat[0]), float(rat[1])
+        if d == 0:
+            return None
+        else:
+            return n/d
     else:
         return float(rat)
 

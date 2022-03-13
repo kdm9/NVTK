@@ -8,6 +8,8 @@
     <form id="select-images">
         <label for="image-input">Select files to process</label>
         <input id="image-input" multiple @change="onImageSelect" type="file" lazy/>
+        <label for="json-input">Or, select a json file with a precomputed list of images.</label>
+        <input id="json-input" @change="onJSONUpload" type="file" lazy/>
     </form>
     <progress v-if="progress && progress.done != progress.total" id="imageProgress" :max="progress.total" :value="progress.done">{{progress.done}} images done!</progress>
     <button v-if="progress && progress.done == progress.total" v-on:click="autofillAllIDs()" id="autofillAllIDs">Auto-fill images</button>

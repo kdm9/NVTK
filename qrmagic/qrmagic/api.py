@@ -3,7 +3,6 @@ from flask import Flask, request, abort, jsonify, send_from_directory, current_a
 from whitenoise import WhiteNoise
 
 from .scanimages import ImgData, dataURI_to_file
-from .labelmaker import *
 
 app = Flask("qrmagic")
 
