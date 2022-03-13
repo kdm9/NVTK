@@ -21,8 +21,8 @@ setup(
     description=desc,
     entry_points='''
         [console_scripts]
-        qrmagic-detect=qrmagic.scanimage:climain
-        qrmagic-labelprint=qrmagic.label_maker:main
+        qrmagic-detect=qrmagic.scanimages:climain
+        qrmagic-labelprint=qrmagic.labelmaker:main
     ''',
     author="Kevin Murray",
     author_email="foss@kdmurray.id.au",

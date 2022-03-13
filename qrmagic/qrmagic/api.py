@@ -17,18 +17,8 @@ def redir_index():
 @app.route("/api/scan-image", methods=["POST"])
 def scan_image():
     jsondat = json.loads(request.data)
-    img = ImgData(dataURI_to_file(jsondat.get("content")))
-    resp = {
-        "filename": jsondat.get("filename"),
-        "camera": img.camera,
-        "datetime": img.datetime.isoformat(),
-        "lat": img.lat,
-        "lng": img.lon,
-        "alt": img.alt,
-        "midsize": img.midsize,
-        "qrcodes": img.qrcode,
-    }
-    return jsonify(resp), 201
+    img = ImgData(filename = jsondat.get("filename"), data = dataURI_to_file(jsondat.get("content")))
+    return jsonify(img.as_response_json()), 201
 
 if __name__ == "__main__":
     app.run(debug=True, port=8000)

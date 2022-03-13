@@ -2,7 +2,10 @@ import exifread
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 from pyzbar.pyzbar import decode, ZBarSymbol
+from tqdm import tqdm
 
+
+import argparse
 import logging
 from logging import ERROR, WARNING, INFO, DEBUG
 import os
@@ -14,6 +17,7 @@ import json
 import base64
 from io import BytesIO
 from urllib.request import urlopen
+import multiprocessing as mp
 
 
 def get_logger(level=INFO):
@@ -35,17 +39,32 @@ def dataURI_to_file(uri):
 class ImgData(object):
     MIDSIZE_HEIGHT = 720
 
-    def __init__(self, filedata):
+    def __init__(self, path=None, filename=None, data=None):
+        self.qrcode = None
+        self.camera = None
+        self.datetime = None
+        self.lat = None
+        self.lon = None
+        self.alt = None
+        self.midsize = None
+        filedata = None
+        if path is not None:
+            self.filename = Path(path).name
+            filedata = path
+        else:
+            assert filename is not None and data is not None
+            filedata = data
+            self.filename = filename
         try:
             self.image = Image.open(filedata)
             self.width, self.height = self.image.size
+            self.parse_exif()
+            self.scan_codes()
+            self.midsize = self.scale_img(h=self.MIDSIZE_HEIGHT)
+            del self.image
         except Exception as exc:
-            LOG.error("Couldn't read image '%s'", f)
+            LOG.error("Couldn't read or process image '%s'", self.filename)
             LOG.info("ERROR: %s", str(exc))
-        self.parse_exif()
-        self.scan_codes()
-        self.midsize = self.scale_img(h=self.MIDSIZE_HEIGHT)
-        del self.image
 
     def scale_img(self,h):
         try:
@@ -65,7 +84,11 @@ class ImgData(object):
     def parse_exif(self):
         exifdata = self.image._getexif()
         decoded = dict((TAGS.get(key, key), value) for key, value in exifdata.items())
-        datetime = decoded['DateTimeOriginal']
+        try:
+            datetime = decoded['DateTimeOriginal']
+            self.datetime = dt.datetime.strptime(datetime, "%Y:%m:%d %H:%M:%S").isoformat()
+        except KeyError:
+            self.datetime = None
 
         try:
             camera = f"{decoded['Make']} {decoded['Model']}"
@@ -85,7 +108,6 @@ class ImgData(object):
         except KeyError:
             alt = None
 
-        self.datetime = dt.datetime.strptime(datetime, "%Y:%m:%d %H:%M:%S")
         self.camera = camera
         self.lat = lat
         self.lon = lon
@@ -96,7 +118,7 @@ class ImgData(object):
         # Reduce image size until the barcode scans. For some stupid reason this
         # works pretty well.
         x, y = self.image.size
-        for scalar in [0.1, 0.5, 1.0]:
+        for scalar in [0.1, 0.2, 0.5, 0.7, 1.0]:
             LOG.debug("scalar is: %r", scalar)
             img_scaled = self.image.resize((int(x*scalar), int(y*scalar)))
 
@@ -106,6 +128,17 @@ class ImgData(object):
                 LOG.debug("got codes: %r", self.qrcode)
                 return
 
+    def as_response_json(self):
+        return {
+            "filename": self.filename,
+            "qrcodes": self.qrcode,
+            "camera": self.camera,
+            "datetime": self.datetime,
+            "lat": self.lat,
+            "lng": self.lon,
+            "alt": self.alt,
+            "midsize": self.midsize,
+        }
 
 def rat2float(rat):
     """EXIF data is either a IFDRational type which we can just call float()
@@ -123,20 +156,16 @@ def degrees(dms, card):
     return dms
 
 
-def cli_main():
+def climain():
     extrahelp = """
     This program detects QRcodes and other metadata in a folder of images, and
-    saves it as a TSV.
-
-    If you want a nice way of doing this in a semi-automated way, use the web UI.
+    saves it as a json for importing into the web gui (to be implemented soon).
     """
     ap = argparse.ArgumentParser()
     ap.add_argument("-t", "--threads", type=int, default=mp.cpu_count(),
             help="Number of CPUs to use for image decoding/scanning")
-    ap.add_argument("-s", "--delay-seconds", type=int, default=0,
-            help="Persist a QRcode scan for N seconds (default 0).")
-    ap.add_argument("-M", "--metadata", type=argparse.FileType('w'), required=True,
-            help="Write metadata to TSV file here")
+    ap.add_argument("-o", "--output", type=argparse.FileType("w"), required=True,
+            help="ND-JSON output file.")
     ap.add_argument("images", nargs="+", help="List of images")
     args = ap.parse_args()
 
@@ -147,36 +176,7 @@ def cli_main():
     else:
         map_ = map
 
-    metadata = [x for x in tqdm(map_(ImgData, args.images))]
+    for img in tqdm(map_(ImgData, args.images)):
+        print(json.dumps(img.as_response_json()), file=args.output)
     del pool
 
-    if args.metadata:
-        print("File", "ID", "DateTime", "Lat", "Lon", "Alt", "CameraID", sep='\t', file=args.metadata)
-    last = None
-    for img in sorted(metadata, key=lambda x: (x.camera, x.datetime, x.path)):
-        this_id = "NOQRCODE"
-        if img.qrcode is None:
-            if last is not None and \
-                    img.datetime is not None and \
-                    last.datetime is not None and \
-                    (img.datetime - last.datetime).total_seconds() < args.delay_seconds:
-                this_id = last.qrcode
-        else:
-            last = img
-            this_id = img.qrcode
-
-        cam = "CAMUNKNOWN"
-        if img.camera is not None:
-            cam = img.camera
-
-        def b(val):
-            """Blank 'None's"""
-            if val is None:
-                return ""
-            else:
-                return val
-
-        if args.metadata:
-            print(img.path.resolve(), this_id, b(img.datetime), b(img.lat),
-                    b(img.lon), b(img.alt), b(img.camera), sep='\t',
-                    file=args.metadata)
