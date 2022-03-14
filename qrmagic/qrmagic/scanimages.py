@@ -120,7 +120,7 @@ class ImgData(object):
         # Reduce image size until the barcode scans. For some stupid reason this
         # works pretty well.
         x, y = self.image.size
-        for scalar in [0.1, 0.2, 0.5, 0.7, 1.0]:
+        for scalar in [0.1, 0.2, 0.5, 1.0]:
             LOG.debug("scalar is: %r", scalar)
             img_scaled = self.image.resize((int(x*scalar), int(y*scalar)))
 
@@ -141,6 +141,7 @@ class ImgData(object):
             "alt": self.alt,
             "midsize": self.midsize,
         }
+
 
 def rat2float(rat):
     """EXIF data is either a IFDRational type which we can just call float()

@@ -1,4 +1,4 @@
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageEnhance
 from PIL.ExifTags import TAGS, GPSTAGS
 from pyzbar.pyzbar import decode, ZBarSymbol
 from tqdm import tqdm
@@ -135,6 +135,27 @@ class AutoZbarDecoder(ZbarDecoder):
             if res is not None:
                 return res
 
+class AutoWithContrastZbarDecoder(ZbarDecoder):
+    name = "auto_contrast_pyzbar"
+
+    def decode(self, image):
+        for scalar in [0.1, 0.2, 0.5, 1]:
+            image2 = scale_image(image, scalar=scalar)
+            res = ZbarDecoder.decode(self, image2)
+            if res is not None:
+                return res
+            image3 = ImageOps.autocontrast(image2)
+            res = ZbarDecoder.decode(self, image3)
+            if res is not None:
+                return res
+            for sharpness in [2, 1, 4]:
+                sharpener = ImageEnhance.Sharpness(image2)
+                image4 = sharpener.enhance(sharpness)
+                res = ZbarDecoder.decode(self, image4)
+                if res is not None:
+                    return res
+
+
 
 all_scanners = [
     ZbarDecoder(),
@@ -143,6 +164,7 @@ all_scanners = [
     RotatedZbarDecoder(),
     #TiledZbarDecoder(),
     AutoZbarDecoder(),
+    AutoWithContrastZbarDecoder(),
 ]
 
 
@@ -167,8 +189,7 @@ def main():
     with ProcessPoolExecutor(args.threads) as exc:
         for image in args.images:
             for scanner in all_scanners:
-                jobs.append(exc.submit(do_one, scanner, image))
-                print(len(jobs), exc._queue_count, exc._work_ids.maxsize, file=stderr)
+                jobs.add(exc.submit(do_one, scanner, image))
     finished = []
     for fut in tqdm(as_completed(jobs), desc="Scanning", total=len(jobs)):
         finished.append(fut.result())
