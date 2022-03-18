@@ -1,5 +1,4 @@
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw, ImageFont
-from PIL.ExifTags import TAGS, GPSTAGS
 from pyzbar.pyzbar import decode, ZBarSymbol
 from tqdm import tqdm
 import cv2
@@ -7,10 +6,16 @@ import numpy as np
 
 import argparse
 from sys import stderr
-from concurrent.futures import as_completed, ProcessPoolExecutor
+import multiprocessing as mp
 from pathlib import Path
+from time import time
 DEBUG=False
 
+
+class KImage(object):
+    def __init__(self, filename):
+        self.image = Image.open(filename)
+        self.filename = Path(filename).name
 
 def write_on_image(image, text):
     image = image.copy()
@@ -33,6 +38,8 @@ def write_on_image(image, text):
 
 
 def scale_image(image, scalar=None, h=None):
+    if scalar == 1:
+        return image
     x, y = image.size
     if scalar is None:
         if h is None:
@@ -40,188 +47,83 @@ def scale_image(image, scalar=None, h=None):
         scalar = 1 if h > y else h/y
     return image.resize((int(round(x*scalar)), int(round(y*scalar))))
 
-class KImage(object):
-    def __init__(self, filename):
-        self.image = Image.open(filename)
-        self.filename = Path(filename)
 
-class Decoder(object):
-    def __init__(self):
-        pass
-
-    def preprocess(self, image):
-        return image
-
-    def decode(self, image):
-        return None
-
-    def __call__(self, image):
-        image = self.preprocess(image)
-        return image, self.decode(image)
-    
-
-class ZbarDecoder(Decoder):
-    name = "pyzbar"
-
-    def decode(self, image):
-        qrcode = None
-        codes = decode(image, [ZBarSymbol.QRCODE,])
-        return [d.data.decode('utf8').strip() for d in codes]
-        if len(codes) > 0:
-            qrcode = ";".join(sorted([d.data.decode('utf8').strip() for d in codes]))
-        return qrcode
+def qrdecode(image):
+    codes = decode(image, [ZBarSymbol.QRCODE,])
+    return list(sorted(d.data.decode('utf8').strip() for d in codes))
 
 
-class ScaledZbarDecoder(ZbarDecoder):
-    def __init__(self, scale):
-        self.scale = scale
-        self.name = f"scaled_pyzbar_{scale}"
-
-    def preprocess(self, image):
-        image2 = scale_image(image, scalar=self.scale)
-        return image2
+def normalise_CLAHE(image):
+    cvim = np.array(ImageOps.grayscale(image))
+    clahe = cv2.createCLAHE()
+    clahe_im = clahe.apply(cvim)
+    #cv2.imshow("clahe", clahe_im)
+    return Image.fromarray(clahe_im)
 
 
-class CLAHEZbarDecoder(ZbarDecoder):
-    name = "CLAHE-normalised_pyzbar"
-    def preprocess(self, image):
-        cvim = np.array(ImageOps.grayscale(image))
-        clahe = cv2.createCLAHE()
-        clahe_im = clahe.apply(cvim)
-        cv2.imshow("clahe", clahe_im)
-        return Image.fromarray(clahe_im)
-
-class ScaledCLAHEZbarDecoder(ScaledZbarDecoder):
-    def __init__(self, scale):
-        self.name = f"CLAHE-normalised_scaled_{scale}_pyzbar"
-        self.scale=scale
-
-    def preprocess(self, image):
-        image = ScaledZbarDecoder.preprocess(self, image)
-        image = CLAHEZbarDecoder.preprocess(self, image)
-        return image
+def rotate(image, rot=30):
+    return image.copy().rotate(rot, expand=1)
 
 
-class AutoScaledZbarDecoder(ZbarDecoder):
-    name = "autoscaled_pyzbar"
-
-    def decode(self, image):
-        for scalar in [0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 1]:
-            image2 = scale_image(image, scalar=scalar)
-            res = ZbarDecoder.decode(self, image2)
-            if res is not None:
-                return res
+def autocontrast(image):
+    return ImageOps.autocontrast(image)
 
 
-class RotatedZbarDecoder(Decoder):
-    name = "rotated_pyzbar"
-
-    def decode(self, image):
-        qrcode = None
-        for rot in range(10, 91, 10):
-            imrot = image.rotate(rot, expand=1)
-            res = ZbarDecoder.decode(self, imrot)
-            if res is not None:
-                return res
+def sharpen(image, amount=1):
+    sharpener = ImageEnhance.Sharpness(image)
+    return sharpener.enhance(amount)
 
 
-class TiledZbarDecoder(Decoder):
-    name = "tiled_pyzbar"
-
-    def decode(self, image):
-        w, h = image.size
-        orig = np.asarray(image)
-        for x in range(5):
-            tw = w/6
-            l = int(x*tw)
-            r = min(w, int(l + 2*tw))
-            for y in range(5):
-                th = h/6
-                b = int(y*th)
-                t = min(h, int(b + 2*th))
-                crop = Image.fromarray(orig[l:r, b:t, :])
-                crop.save(f"{x}X{y}.jpg")
-                res = ZbarDecoder.decode(self, crop)
-                if res is not None:
-                    return res
-
-class AutoZbarDecoder(ZbarDecoder):
-    name = "auto_pyzbar"
-
-    def decode(self, image):
-        for scalar in [0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 1]:
-            image2 = scale_image(image, scalar=scalar)
-            res = ZbarDecoder.decode(self, image2)
-            if res is not None:
-                return res
-            image3 = ImageOps.autocontrast(image2)
-            res = ZbarDecoder.decode(self, image3)
-            if res is not None:
-                return res
-
-class AutoWithContrastZbarDecoder(ZbarDecoder):
-    name = "auto_contrast_pyzbar"
-
-    def decode(self, image):
-        barcodes = set()
-        for scalar in [0.1, 0.2, 0.5, 1]:
-            image2 = scale_image(image, scalar=scalar)
-            res = ZbarDecoder.decode(self, image2)
-            if DEBUG:
-                m = f"scaled {scalar}: {res}"
-                print(m)
-                image2 = write_on_image(image2, m)
-                image2.save(f"debug/{Path(image.filename).name}_scale_{scalar}.jpg")
-            if res is not None:
-                for barcode in res:
-                    barcodes.add(barcode)
-                break
-            #image3 = ImageOps.autocontrast(image2)
-            #res = ZbarDecoder.decode(self, image3)
-            #if DEBUG:
-            #    m = f"scaled {scalar} + autocontrast: {res}"
-            #    print(m)
-            #    image3 = write_on_image(image3, m)
-            #    image3.save(f"debug/{Path(image.filename).name}_scale_{scalar}_autocontrast.jpg")
-            #if res is not None:
-            #    for barcode in res:
-            #        barcodes.add(barcode)
-            for sharpness in [2, 0.5, 4]:
-                sharpener = ImageEnhance.Sharpness(image2)
-                image4 = sharpener.enhance(sharpness)
-                res = ZbarDecoder.decode(self, image4)
-                if DEBUG:
-                    m = f"scaled {scalar} + sharpen {sharpness}: {res}"
-                    print(m)
-                    image4 = write_on_image(image4, m)
-                    image4.save(f"debug/{Path(image.filename).name}_scale_{scalar}_sharpness_{sharpness}.jpg")
-                if res is not None:
-                    for barcode in res:
-                        barcodes.add(barcode)
-                    break
-        return barcodes
-
-
-all_scanners = [
-    ZbarDecoder(),
-    #CLAHEZbarDecoder(),
-    #AutoScaledZbarDecoder(),
-    #RotatedZbarDecoder(),
-    #TiledZbarDecoder(),
-    #AutoZbarDecoder(),
-    AutoWithContrastZbarDecoder(),
-]
-
-
-
-def do_one(scanner, image):
+def do_one(image):
     image = KImage(image)
-    res = scanner(image.image)
-    return {"result": res[1],
-            "scanner": scanner.name,
-            "image": image.filename,
-            #"pixels": res[0],
-            }
+    l = time()
+    def tick():
+        nonlocal l
+        n = time()
+        t = n - l
+        l = n
+        return t
+
+    union = set()
+    total_t = 0
+    results = []
+    for scalar in [0.1, 0.2, 0.5, 1]:
+        tick()
+        image_scaled = scale_image(image.image, scalar=scalar)
+        st = tick()
+        res = qrdecode(image_scaled)
+        union.update(res); total_t += st
+        results.append({"file": image.filename,
+                        "what": f"scaled-{scalar}",
+                        "result": res,
+                        "time": st})
+
+        tick()
+        image_scaled_autocontrast = autocontrast(image_scaled)
+        t = tick()
+        res = qrdecode(image_scaled_autocontrast)
+        union.update(res); total_t += st + t
+        results.append({"file": image.filename,
+                        "what": f"scaled-{scalar}_autocontrast",
+                        "result": res,
+                        "time": t + st})
+                   
+        for sharpness in [0.5, 0.1, 2]:
+            tick()
+            image_scaled_sharp = sharpen(image_scaled, sharpness)
+            t = tick()
+            res = qrdecode(image_scaled_sharp)
+            union.update(res); total_t += st + t
+            results.append({"file": image.filename,
+                            "what": f"scaled-{scalar}_sharpen-{sharpness}",
+                            "result": res,
+                            "time": t + st})
+    results.append({"file": image.filename,
+                    "what": f"do-all-the-things",
+                    "result": list(union),
+                    "time": total_t})
+    return results
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -230,19 +132,13 @@ def main():
     ap.add_argument("images", nargs="+", help="List of images")
     args = ap.parse_args()
 
-    jobs = set()
-    with ProcessPoolExecutor(args.threads) as exc:
-        for image in args.images:
-            for scanner in all_scanners:
-                jobs.add(exc.submit(do_one, scanner, image))
-    finished = []
-    for fut in tqdm(as_completed(jobs), desc="Scanning", total=len(jobs)):
-        finished.append(fut.result())
-    
-    print("Scanner", "Image", "Result", sep="\t")
-    for res in finished:
-        barcodes = ";".join(sorted(res["result"]))
-        print(res["scanner"], res["image"], barcodes, sep="\t")
+    pool = mp.Pool(args.threads)
+
+    print("Scanner", "Image", "Result", "Time", sep="\t")
+    for image_results in tqdm(pool.imap(do_one, args.images), unit="images", total=len(args.images)):
+        for result in image_results:
+            barcodes = ";".join(sorted(result["result"]))
+            print(result["what"], result["file"], barcodes, result["time"], sep="\t")
 
 
 if __name__ == "__main__":

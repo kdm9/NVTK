@@ -3,6 +3,9 @@ args = commandArgs(trailingOnly=TRUE)
 
 read.delim(args[1]) %>%
     group_by(Scanner) %>%
-    summarise(prop_success = mean(Result != "")) %>%
+    summarise(Success = mean(Result != ""), 
+              Time = mean(Time),
+              TimeSD = sd(Time)) %>%
     ungroup() %>%
-    arrange(-prop_success)
+    arrange(-Success) %>%
+    knitr::kable()
