@@ -1,5 +1,6 @@
 import exifread
 from PIL import Image
+from PIL import Image, ImageOps, ImageEnhance, ImageDraw, ImageFont
 from PIL.ExifTags import TAGS, GPSTAGS
 from pyzbar.pyzbar import decode, ZBarSymbol
 from tqdm import tqdm
@@ -123,12 +124,17 @@ class ImgData(object):
         for scalar in [0.1, 0.2, 0.5, 1.0]:
             LOG.debug("scalar is: %r", scalar)
             img_scaled = self.image.resize((int(x*scalar), int(y*scalar)))
+            for sharpness in [1, 2, 0.5, 4]:
+                LOG.debug("sharpness is: %r", scalar)
+                if sharpness != 1:
+                    sharpener = ImageEnhance.Sharpness(img_scaled)
+                    img_scaled = sharpener.enhance(sharpness)
 
-            codes = decode(self.image, [ZBarSymbol.QRCODE,])
-            if len(codes) > 0:
-                self.qrcode = [d.data.decode('utf8').strip() for d in codes]
-                LOG.debug("got codes: %r", self.qrcode)
-                return
+                    codes = decode(img_scaled, [ZBarSymbol.QRCODE,])
+                    if len(codes) > 0:
+                        self.qrcode = [d.data.decode('utf8').strip() for d in codes]
+                        LOG.debug("got codes: %r", self.qrcode)
+                        return
 
     def as_response_json(self):
         return {
@@ -166,7 +172,7 @@ def degrees(dms, card):
 def climain():
     extrahelp = """
     This program detects QRcodes and other metadata in a folder of images, and
-    saves it as a json for importing into the web gui (to be implemented soon).
+    saves it as a json for importing into the web gui.
     """
     ap = argparse.ArgumentParser()
     ap.add_argument("-t", "--threads", type=int, default=mp.cpu_count(),
@@ -185,5 +191,7 @@ def climain():
 
     for img in tqdm(map_(ImgData, args.images)):
         print(json.dumps(img.as_response_json()), file=args.output)
-    del pool
 
+    if args.threads > 1:
+        del _map
+        del pool
