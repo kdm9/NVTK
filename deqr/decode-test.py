@@ -1,4 +1,4 @@
-from PIL import Image, ImageOps, ImageEnhance
+from PIL import Image, ImageOps, ImageEnhance, ImageDraw, ImageFont
 from PIL.ExifTags import TAGS, GPSTAGS
 from pyzbar.pyzbar import decode, ZBarSymbol
 from tqdm import tqdm
@@ -8,6 +8,29 @@ import numpy as np
 import argparse
 from sys import stderr
 from concurrent.futures import as_completed, ProcessPoolExecutor
+from pathlib import Path
+DEBUG=False
+
+
+def write_on_image(image, text):
+    image = image.copy()
+    font = ImageFont.load_default()
+    bottom_margin = 3   # bottom margin for text
+    text_height = font.getsize(text)[1] + bottom_margin
+    left, top = (5, image.size[1] - text_height)
+    text_width = font.getsize(text)[0]
+    locus = np.asarray(image.crop((left, top, left + text_width, top + text_height)))
+    meancol = tuple(list(locus.mean(axis=(0,1)).astype(int)))
+    opposite = (int(locus.mean()) + 96)
+    if opposite > 255:
+        opposite = (int(locus.mean()) - 96)
+    oppositegrey = (opposite, ) * 3
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((left-3, top-3, left + text_width + 3, top + text_height + 3),
+                   fill=meancol)
+    draw.text((left, top), text, fill=oppositegrey, font=font)
+    return image
+
 
 def scale_image(image, scalar=None, h=None):
     x, y = image.size
@@ -20,7 +43,7 @@ def scale_image(image, scalar=None, h=None):
 class KImage(object):
     def __init__(self, filename):
         self.image = Image.open(filename)
-        self.filename = filename
+        self.filename = Path(filename)
 
 class Decoder(object):
     def __init__(self):
@@ -43,6 +66,7 @@ class ZbarDecoder(Decoder):
     def decode(self, image):
         qrcode = None
         codes = decode(image, [ZBarSymbol.QRCODE,])
+        return [d.data.decode('utf8').strip() for d in codes]
         if len(codes) > 0:
             qrcode = ";".join(sorted([d.data.decode('utf8').strip() for d in codes]))
         return qrcode
@@ -139,31 +163,52 @@ class AutoWithContrastZbarDecoder(ZbarDecoder):
     name = "auto_contrast_pyzbar"
 
     def decode(self, image):
+        barcodes = set()
         for scalar in [0.1, 0.2, 0.5, 1]:
             image2 = scale_image(image, scalar=scalar)
             res = ZbarDecoder.decode(self, image2)
+            if DEBUG:
+                m = f"scaled {scalar}: {res}"
+                print(m)
+                image2 = write_on_image(image2, m)
+                image2.save(f"debug/{Path(image.filename).name}_scale_{scalar}.jpg")
             if res is not None:
-                return res
-            image3 = ImageOps.autocontrast(image2)
-            res = ZbarDecoder.decode(self, image3)
-            if res is not None:
-                return res
-            for sharpness in [2, 1, 4]:
+                for barcode in res:
+                    barcodes.add(barcode)
+                break
+            #image3 = ImageOps.autocontrast(image2)
+            #res = ZbarDecoder.decode(self, image3)
+            #if DEBUG:
+            #    m = f"scaled {scalar} + autocontrast: {res}"
+            #    print(m)
+            #    image3 = write_on_image(image3, m)
+            #    image3.save(f"debug/{Path(image.filename).name}_scale_{scalar}_autocontrast.jpg")
+            #if res is not None:
+            #    for barcode in res:
+            #        barcodes.add(barcode)
+            for sharpness in [2, 0.5, 4]:
                 sharpener = ImageEnhance.Sharpness(image2)
                 image4 = sharpener.enhance(sharpness)
                 res = ZbarDecoder.decode(self, image4)
+                if DEBUG:
+                    m = f"scaled {scalar} + sharpen {sharpness}: {res}"
+                    print(m)
+                    image4 = write_on_image(image4, m)
+                    image4.save(f"debug/{Path(image.filename).name}_scale_{scalar}_sharpness_{sharpness}.jpg")
                 if res is not None:
-                    return res
-
+                    for barcode in res:
+                        barcodes.add(barcode)
+                    break
+        return barcodes
 
 
 all_scanners = [
     ZbarDecoder(),
     #CLAHEZbarDecoder(),
     #AutoScaledZbarDecoder(),
-    RotatedZbarDecoder(),
+    #RotatedZbarDecoder(),
     #TiledZbarDecoder(),
-    AutoZbarDecoder(),
+    #AutoZbarDecoder(),
     AutoWithContrastZbarDecoder(),
 ]
 
@@ -196,7 +241,8 @@ def main():
     
     print("Scanner", "Image", "Result", sep="\t")
     for res in finished:
-        print(res["scanner"], res["image"], res["result"], sep="\t")
+        barcodes = ";".join(sorted(res["result"]))
+        print(res["scanner"], res["image"], barcodes, sep="\t")
 
 
 if __name__ == "__main__":

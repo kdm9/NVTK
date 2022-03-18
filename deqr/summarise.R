@@ -1,7 +1,8 @@
 library(tidyverse)
+args = commandArgs(trailingOnly=TRUE)
 
-read.delim("all.tsv") %>%
+read.delim(args[1]) %>%
     group_by(Scanner) %>%
-    summarise(prop_success = mean(Result != "None")) %>%
+    summarise(prop_success = mean(Result != "")) %>%
     ungroup() %>%
     arrange(-prop_success)
