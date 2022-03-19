@@ -17,6 +17,7 @@ class KImage(object):
         self.image = Image.open(filename)
         self.filename = Path(filename).name
 
+
 def write_on_image(image, text):
     image = image.copy()
     font = ImageFont.load_default()
@@ -85,43 +86,62 @@ def do_one(image):
         return t
 
     union = set()
+    first = []
+    first_t = 0
     total_t = 0
     results = []
-    for scalar in [0.1, 0.2, 0.5, 1]:
+    for scalar in [0.5, 0.2, 0.1, 1]:
         tick()
-        image_scaled = scale_image(image.image, scalar=scalar)
-        st = tick()
+        if scalar != 1:
+            image_scaled = scale_image(image.image, scalar=scalar)
+        else:
+            image_scaled = image.image
         res = qrdecode(image_scaled)
+        st = tick()
         union.update(res); total_t += st
+        if res:
+            first = res
+            first_t = total_t
         results.append({"file": image.filename,
-                        "what": f"scaled-{scalar}",
+                        "what": f"scaled-{scalar}" if scalar != 1 else "original",
                         "result": res,
                         "time": st})
 
+        for sharpness in [0.1, 0.5, 2]:
+            tick()
+            image_scaled_sharp = sharpen(image_scaled, sharpness)
+            res = qrdecode(image_scaled_sharp)
+            t = tick()
+            union.update(res); total_t += st + t
+            if res:
+                first = res
+                first_t = total_t
+            results.append({"file": image.filename,
+                            "what": f"scaled-{scalar}_sharpen-{sharpness}",
+                            "result": res,
+                            "time": t + st})
+
         tick()
         image_scaled_autocontrast = autocontrast(image_scaled)
-        t = tick()
         res = qrdecode(image_scaled_autocontrast)
+        t = tick()
         union.update(res); total_t += st + t
+        if res:
+            first = res
+            first_t = total_t
         results.append({"file": image.filename,
                         "what": f"scaled-{scalar}_autocontrast",
                         "result": res,
                         "time": t + st})
                    
-        for sharpness in [0.5, 0.1, 2]:
-            tick()
-            image_scaled_sharp = sharpen(image_scaled, sharpness)
-            t = tick()
-            res = qrdecode(image_scaled_sharp)
-            union.update(res); total_t += st + t
-            results.append({"file": image.filename,
-                            "what": f"scaled-{scalar}_sharpen-{sharpness}",
-                            "result": res,
-                            "time": t + st})
     results.append({"file": image.filename,
                     "what": f"do-all-the-things",
                     "result": list(union),
                     "time": total_t})
+    results.append({"file": image.filename,
+                    "what": f"take-the-first-thing",
+                    "result": first,
+                    "time": first_t})
     return results
 
 
