@@ -21,6 +21,10 @@ from urllib.request import urlopen
 import multiprocessing as mp
 
 
+# TODO: make scale_image a separate function, reduce duplication
+# TODO: PIL image to jpeg dataurl helper function
+
+
 def get_logger(level=INFO):
     log = logging.getLogger(__name__)
     log.setLevel(level)
@@ -118,13 +122,11 @@ class ImgData(object):
     
     def scan_codes(self):
         self.qrcode = None
-        # Reduce image size until the barcode scans. For some stupid reason this
-        # works pretty well.
         x, y = self.image.size
-        for scalar in [0.1, 0.2, 0.5, 1.0]:
+        for scalar in [0.2, 0.5, 0.1, 1.0]:
             LOG.debug("scalar is: %r", scalar)
             img_scaled = self.image.resize((int(x*scalar), int(y*scalar)))
-            for sharpness in [1, 2, 0.5, 4]:
+            for sharpness in [0.1, 0.5, 1.5]:
                 LOG.debug("sharpness is: %r", scalar)
                 if sharpness != 1:
                     sharpener = ImageEnhance.Sharpness(img_scaled)
