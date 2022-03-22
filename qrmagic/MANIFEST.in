@@ -1,0 +1,2 @@
+include versioneer.py
+include qrmagic/_version.py

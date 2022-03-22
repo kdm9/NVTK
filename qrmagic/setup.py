@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from setuptools import setup, find_packages
-#import versioneer
+import versioneer
 
 
 desc = """
@@ -13,8 +13,9 @@ with open("requirements.txt") as fh:
 setup(
     name="qrmagic",
     packages=find_packages(),
-    #version=versioneer.get_version(),
-    #cmdclass=versioneer.get_cmdclass(),
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
+    setup_requires=["versioneer",],
     install_requires=install_requires,
     include_package_data=True,
     data_files=['requirements.txt'],
