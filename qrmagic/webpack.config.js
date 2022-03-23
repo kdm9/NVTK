@@ -5,6 +5,7 @@ module.exports = {
   mode: 'production',
   entry: {
       "imagesort": './src/imagesort.js',
+      "index": './src/index.js',
   },
   output: {
     path: path.resolve(__dirname, 'static'),

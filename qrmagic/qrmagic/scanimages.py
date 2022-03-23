@@ -193,7 +193,3 @@ def climain():
 
     for img in tqdm(map_(ImgData, args.images), unit="images", total=len(args.images)):
         print(json.dumps(img.as_response_json()), file=args.output)
-
-    if args.threads > 1:
-        del _map
-        del pool

@@ -5,13 +5,8 @@ import axiosRetry from 'axios-retry';
 import axiosRateLimit from 'axios-rate-limit';
 import { quote } from 'shell-quote';
 
-/*
-import { Reader, Writer } from '@transcend-io/conflux';
-import streamSaver from 'streamsaver';
-import { ReadableStream,  WritableStream } from "web-streams-polyfill/ponyfill";
-streamSaver.ReadableStream = ReadableStream;
-streamSaver.WritableStream = WritableStream;
-*/
+require("milligram/dist/milligram.min.css");
+
 
 axios.default.timeout = 10000;
 axiosRetry(axios, { retries: 4, retryDelay: axiosRetry.exponentialDelay });
@@ -186,12 +181,24 @@ var vm = new Vue({
         removeImage(index) {
             this.images.splice(index, 1);
         },
-        idFromPreviousIfEmpty(index) {
+        idFromPreviousIfEmpty(sindex) {
+            const index = parseInt(sindex);
             const id = this.images[index].id;
             if (id == "" && index > 1) {
                 const secSinceLast = (this.images[index].datetime - this.images[index-1].datetime)/1000;
+                //console.log(`index: ${index} secs: ${secSinceLast} fill: previous len: ${this.images.length} i: ${index -1}`);
                 if (secSinceLast < this.persistIDForSecs) {
                     this.images[index].id = this.images[index-1].id;
+                    return;
+                }
+            }
+            // Fill from next as well
+            if (id == "" && index < (this.images.length-2)) {
+                const secUntilNext = (this.images[index+1].datetime - this.images[index].datetime)/1000;
+                //console.log(`index: ${index} secs: ${secUntilNext} fill: next len: ${this.images.length} i: ${index +1}`);
+                if (secUntilNext < this.persistIDForSecs) {
+                    this.images[index].id = this.images[index+1].id;
+                    return;
                 }
             }
         },

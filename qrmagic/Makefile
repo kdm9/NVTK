@@ -1,6 +1,6 @@
 .PHONY: devserve
 devserve:
-	npm install
-	webpack
+	npm install --include dev
+	npx webpack
 	python3 -m qrmagic.api
 
