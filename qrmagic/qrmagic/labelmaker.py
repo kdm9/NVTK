@@ -2,7 +2,7 @@
 from labels import Specification, Sheet
 from reportlab.graphics import shapes
 from reportlab.lib import colors
-from reportlab.lib.units import mm
+from reportlab.lib.units import mm, inch
 from reportlab.pdfbase.pdfmetrics import getFont, stringWidth
 import qrcode
 from tqdm import tqdm
@@ -13,7 +13,7 @@ import sys
 __all__ = [
         "label_types",
         "CryoLabel",
-        "LCRY1700",
+        "Avery94214",
         "L7658",
         "L3667",
         "L7636",
@@ -193,23 +193,23 @@ class CryoLabel(LabelSpec):
             "row_gap": 0, "column_gap": 3,
     }
 
-class LCRY1700(LabelSpec):
-    description = "Cryo Labels for screw-cap eppies."
+class Avery94214(LabelSpec):
+    description = "Long Labels for 5mL eppies (American)."
     font_name = "Helvetica"
     font_size = 10
-    name = "LCRY1700"
+    name = "Avery94214"
     qrsize = 8*mm
-    hmargin = 1.8*mm
-    vmargin = 1.8*mm
+    hmargin = 1.5*mm
+    vmargin = 1.5*mm
     layouts = ["qr_left", "qr_right"]
     page = {
-            "sheet_width": 215, "sheet_height": 279,
-            "columns": 5, "rows": 17,
-            "label_width": 32.5, "label_height": 12.5,
-            "corner_radius": 3,
-            "left_margin": 19.5, "top_margin": 6.5,
-            "row_gap": 3, "column_gap": 3.1,
-    }
+            "sheet_width": 215.9, "sheet_height": 279.4,
+            "columns": 2, "rows": 16,
+            "label_width": 76.2, "label_height": 15.875,
+            "corner_radius": 2.54,
+            "left_margin": 21.43, "column_gap": 20.7, "top_margin": 12.7,
+            "row_gap": 0,
+            }
 
 
 label_types = {
@@ -217,7 +217,7 @@ label_types = {
     "L3667": L3667,
     "L3666": L3666,
     "L7658": L7658,
-    "LCRY1700": LCRY1700,
+    "Avery94214": Avery94214,
     "CryoLabel": CryoLabel,
 }
 
