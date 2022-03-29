@@ -52,3 +52,44 @@ One can also create a demonstration PDF for each label type with the command:
 ```bash
 $ python3 -m qrmagic.labelmaker --demo output_dir/
 ```
+
+## QR Code-based Image organisation
+
+So, we took all these photos in the field, now what do we do with them? The first step is to organise them by sample. To do so manually is cumbersome, so here are some tools to help.
+
+### Step 1: scan images on your machine
+
+This CLI tool will scan your images, doing its best to decode all the QRcodes
+they contain. For each image it also reports the location and time the image
+was taken, and various other bits of metadata.
+
+NB: for silly javascript reasons, you need to have all images be in a single
+directory. If you have your images organised in directories (e.g. by date, or
+by camera), please run this process once per directory, or move or symlink all
+images into a single directory.
+
+```
+qrmagic-detect -o my-images.json my-images/*.JPG
+```
+
+
+### Step 2: curation
+
+Now, go to <https://qrmagic.kdmurray.id.au/imagesort.html>. Here, you should
+upload the JSON file created above, and up will pop a table of images. You can
+then try automatically filling missing barcodes based on the adjacent codes
+(always do a bit of manual curation here), or manually type in QR codes that
+are not detectable. When you are finished, you can download a Bash script which
+contains commands to rename all your files by sample ID (or whatever your
+barcodes denote).
+
+
+### Step 3: rename images
+
+Once downloaded, the renamer script should be run in the same directory your
+images are all in:
+
+```
+cd /path/to/my-images
+bash -x ~/Downloads/rename.sh
+```
