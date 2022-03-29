@@ -1,6 +1,6 @@
-import exifread
 from PIL import Image
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw, ImageFont
+import HeifImagePlugin
 from PIL.ExifTags import TAGS, GPSTAGS
 from pyzbar.pyzbar import decode, ZBarSymbol
 from tqdm import tqdm
@@ -19,7 +19,7 @@ import base64
 from io import BytesIO
 from urllib.request import urlopen
 import multiprocessing as mp
-
+from sys import stderr
 
 # TODO: make scale_image a separate function, reduce duplication
 # TODO: PIL image to jpeg dataurl helper function
@@ -89,7 +89,7 @@ class ImgData(object):
         return f"qr={self.qrcode} dt={self.datetime} lt={self.lat} ln={self.lon} at={self.alt} cm={self.camera}"
 
     def parse_exif(self):
-        exifdata = self.image._getexif()
+        exifdata = self.image.getexif()
         decoded = dict((TAGS.get(key, key), value) for key, value in exifdata.items())
         try:
             datetime = decoded['DateTimeOriginal']
@@ -123,9 +123,10 @@ class ImgData(object):
     def scan_codes(self):
         self.qrcode = None
         x, y = self.image.size
+        image = ImageOps.grayscale(self.image)
         for scalar in [0.2, 0.5, 0.1, 1.0]:
             LOG.debug("scalar is: %r", scalar)
-            img_scaled = self.image.resize((int(x*scalar), int(y*scalar)))
+            img_scaled = image.resize((int(x*scalar), int(y*scalar)))
             for sharpness in [0.1, 0.5, 1.5]:
                 LOG.debug("sharpness is: %r", scalar)
                 if sharpness != 1:
