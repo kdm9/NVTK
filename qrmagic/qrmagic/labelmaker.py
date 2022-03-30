@@ -16,6 +16,7 @@ from tqdm import tqdm
 import argparse
 import sys
 
+
 __all__ = [
         "label_types",
         "CryoLabel",
@@ -26,6 +27,7 @@ __all__ = [
         "generate_labels",
         "main",
 ]
+
 
 class LabelSpec(object):
     hmargin = 1.5*mm
@@ -85,23 +87,23 @@ class LabelSpec(object):
             qleft = hm
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
-
             tleft = qleft + qs + hg
             tavail = wd - tleft
             fsz, tw, th = self.fit_font(text, tavail, ht)
             tbottom = vm + (ht - th)/2
             label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
+
         elif self.layout == "qr_right":
             qleft = width - qs - hm
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
-
             tright = qleft - hg
             tavail = tright - hm
             fsz, tw, th = self.fit_font(text, tavail, ht)
             tleft = tright - tw
             tbottom = vm + (ht - th)/2
             label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
+
         elif self.layout == "top_half":
             qs = qs/2
             ht = ht/2
@@ -117,48 +119,45 @@ class LabelSpec(object):
             tleft -= hspace/2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
             label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
+
         elif self.layout == "qr_top":
             qleft = hm + (wd - qs)/2
             qbottom = height - vm - qs
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
-
             twavail = wd
             thavail = qbottom - 2*vm
             fsz, tw, th = self.fit_font(text, twavail, thavail)
             tbottom = vm + (qbottom -2*vm - th)/2
             tleft = hm + (wd-tw)/2
             label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
+
         elif self.layout == "qr_left_verticaltext":
             qleft = hm
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
-
             twavail = height - 2*vm
             thavail = width - 3*hm - qs
             fsz, tw, th = self.fit_font(text, twavail, thavail)
             tbottom = vm + (twavail - tw)/2
             tleft = qleft + qs + hm
-
             group = shapes.Group()
             group.add(shapes.String(tbottom, -(tleft + th), text, fontName=self.font_name, fontSize=fsz))
             group.rotate(90)
             label.add(group)
+
         elif self.layout == "qr_right_verticaltext":
             twavail = height - 2*vm
-            thavail = width - 3*hm - qs
+            thavail = width - 2*hm - hg - qs
             fsz, tw, th = self.fit_font(text, twavail, thavail)
             tbottom = vm + (twavail - tw)/2
             tleft = hm
-
             group = shapes.Group()
             group.add(shapes.String(tbottom, -(tleft + th), text, fontName=self.font_name, fontSize=fsz))
             group.rotate(90)
             label.add(group)
-
             qleft = tleft + th + hm
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
-
 
 
 class L7636(LabelSpec):
@@ -175,6 +174,7 @@ class L7636(LabelSpec):
             "left_margin": 9, "top_margin": 21.5,
             "row_gap": 0, "column_gap": 3,
     }
+
 
 class L3667(LabelSpec):
     description = "Mid-sized rectangular labels (48x17mm) in sheets of 4x16"
@@ -208,6 +208,7 @@ class L3666(LabelSpec):
             "row_gap": 0, "column_gap": 0,
     }
 
+
 class L7658(LabelSpec):
     description = "Small labels (25x10mm) in sheets of 7x27"
     font_name = "Helvetica"
@@ -222,6 +223,7 @@ class L7658(LabelSpec):
             "left_margin": 8.5, "top_margin": 13,
             "row_gap": 0, "column_gap": 2.5,
     }
+
 
 class CryoLabel(LabelSpec):
     description = "Cryo Labels for screw-cap eppies. White on left half, clear on right. 63mmx15mm in sheets of 3x18"
@@ -240,6 +242,7 @@ class CryoLabel(LabelSpec):
             "left_margin": 7, "top_margin": 21,
             "row_gap": 0, "column_gap": 3,
     }
+
 
 class Avery94214(LabelSpec):
     description = "Long Labels for 5mL eppies (American)."
@@ -279,6 +282,7 @@ class Herma4265(LabelSpec):
             "top_margin": 8.82,
             "row_gap": 0,
             }
+
 
 class Zweckform6252(LabelSpec):
     description = "Square 45mm labels, sheets of 20."
