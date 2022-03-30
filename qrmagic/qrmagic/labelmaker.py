@@ -117,6 +117,48 @@ class LabelSpec(object):
             tleft -= hspace/2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
             label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
+        elif self.layout == "qr_top":
+            qleft = hm + (wd - qs)/2
+            qbottom = height - vm - qs
+            label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
+
+            twavail = wd
+            thavail = qbottom - 2*vm
+            fsz, tw, th = self.fit_font(text, twavail, thavail)
+            tbottom = vm + (qbottom -2*vm - th)/2
+            tleft = hm + (wd-tw)/2
+            label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
+        elif self.layout == "qr_left_verticaltext":
+            qleft = hm
+            qbottom = vm + (ht - qs) / 2
+            label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
+
+            twavail = height - 2*vm
+            thavail = width - 3*hm - qs
+            fsz, tw, th = self.fit_font(text, twavail, thavail)
+            tbottom = vm + (twavail - tw)/2
+            tleft = qleft + qs + hm
+
+            group = shapes.Group()
+            group.add(shapes.String(tbottom, -(tleft + th), text, fontName=self.font_name, fontSize=fsz))
+            group.rotate(90)
+            label.add(group)
+        elif self.layout == "qr_right_verticaltext":
+            twavail = height - 2*vm
+            thavail = width - 3*hm - qs
+            fsz, tw, th = self.fit_font(text, twavail, thavail)
+            tbottom = vm + (twavail - tw)/2
+            tleft = hm
+
+            group = shapes.Group()
+            group.add(shapes.String(tbottom, -(tleft + th), text, fontName=self.font_name, fontSize=fsz))
+            group.rotate(90)
+            label.add(group)
+
+            qleft = tleft + th + hm
+            qbottom = vm + (ht - qs) / 2
+            label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
+
 
 
 class L7636(LabelSpec):
@@ -218,12 +260,77 @@ class Avery94214(LabelSpec):
             }
 
 
+class Herma4265(LabelSpec):
+    description = "Large rectangular address labels (for large qrcodes), sheets of 18"
+    font_name = "Helvetica"
+    font_size = 24
+    name = "Herma4265"
+    qrsize = 40*mm
+    hmargin = 3*mm
+    vmargin = 3*mm
+    layouts = ["qr_right_verticaltext", "qr_left_verticaltext"]
+    default_layout = "qr_left_verticaltext"
+    page = {
+            "sheet_width": 210, "sheet_height": 297,
+            "columns": 3, "rows": 6,
+            "label_width": 63.5, "label_height": 46.56,
+            "corner_radius": 2.54,
+            "left_margin": 7.21, "column_gap": 2.54, 
+            "top_margin": 8.82,
+            "row_gap": 0,
+            }
+
+class Zweckform6252(LabelSpec):
+    description = "Square 45mm labels, sheets of 20."
+    font_name = "Helvetica"
+    font_size = 12
+    name = "Zweckform6252"
+    qrsize = 35*mm
+    hmargin = 2*mm
+    vmargin = 2*mm
+    layouts = ["qr_top", "qr_right_verticaltext", "qr_left_verticaltext"]
+    default_layout = "qr_top"
+    page = {
+            "sheet_width": 210, "sheet_height": 297,
+            "columns": 4, "rows": 5,
+            "label_width": 45, "label_height": 45,
+            "corner_radius": 0,
+            "left_margin": 7.8, "column_gap": 5.3, 
+            "top_margin": 26.1,
+            "row_gap": 5.3,
+            }
+
+
+class Zweckform3671(LabelSpec):
+    description = "64x45mm labels, sheets of 18."
+    font_name = "Helvetica"
+    font_size = 12
+    name = "Zweckform3671"
+    qrsize = 38*mm
+    hmargin = 2*mm
+    vmargin = 2*mm
+    layouts = ["qr_top", "qr_right_verticaltext", "qr_left_verticaltext", "qr_left", "qr_right"]
+    default_layout = "qr_left_verticaltext"
+    page = {
+            "sheet_width": 210, "sheet_height": 297,
+            "columns": 3, "rows": 6,
+            "label_width": 64, "label_height": 45,
+            "corner_radius": 0,
+            "left_margin": 9, "column_gap": 0, 
+            "top_margin": 13.5, "row_gap": 0,
+            }
+
+
+
 label_types = {
     "L7636": L7636,
     "L3667": L3667,
     "L3666": L3666,
     "L7658": L7658,
     "Avery94214": Avery94214,
+    "Herma4265": Herma4265,
+    "Zweckform6252": Zweckform6252,
+    "Zweckform3671": Zweckform3671,
     "CryoLabel": CryoLabel,
 }
 
