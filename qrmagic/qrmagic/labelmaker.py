@@ -349,7 +349,7 @@ def main():
     morehelp  = """
 There are four modes of operation: two for your assistance, and two actually functional modes
 
-To simply list the support Avery label types:
+To simply list the supported label types:
 
     labelmaker --list-label-types
 
@@ -367,13 +367,13 @@ To actually do anything, you need one of the following:
             help="Write a demo (10 labels, four reps per label) for each label type to DIR.")
     ap.add_argument("--list-label-types", action="store_true",
             help="Write a list of label types.")
-    ap.add_argument("--label-type", choices=list(label_types.keys()),
+    ap.add_argument("--label-type", "-l", choices=list(label_types.keys()),
             help="Label type.")
     ap.add_argument("--layout", default=None,
             help="Label layout. See --list-label-types for a list of supported layouts per label type.")
     ap.add_argument("--copies", type=int, default=1, metavar="N",
             help="Create N copies of each label.")
-    ap.add_argument("--output", type=argparse.FileType("wb"), metavar="FILE",
+    ap.add_argument("--output", "-o", type=argparse.FileType("wb"), metavar="FILE",
             help="Output PDF file.")
     ap.add_argument("--id-file", "-f", type=argparse.FileType("r"), metavar="FILE",
             help="File of IDs, one per line.")
