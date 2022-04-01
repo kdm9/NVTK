@@ -81,6 +81,8 @@ class ImgMetaHash(object):
                 "lon": self.lon,
                 "alt": self.alt,
                 "camera": self.camera,
+                "width": self.width,
+                "height": self.height,
                 "hash": str(self.hash),
                 "sha1": self.sha1}
 
@@ -146,9 +148,12 @@ def climain():
             help="Number of CPUs to use for image decoding/scanning")
     ap.add_argument("-o", "--output", type=argparse.FileType("w"), default="-",
             help="ND-JSON output file.")
-    ap.add_argument("images", nargs="+", help="List of images")
+    ap.add_argument("images", nargs="+", help="List of images. Give '-' to accept newline delimited list from stdin.")
     args = ap.parse_args()
 
+    if args.images[0] == "-":
+        args.images = [l.rstrip("\n") for l in stdin]
+        
     # Setup output
     if args.threads > 1:
         pool = mp.Pool(args.threads)
