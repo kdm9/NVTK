@@ -1,4 +1,5 @@
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw, ImageFont
+import HeifImagePlugin
 from pyzbar.pyzbar import decode, ZBarSymbol
 from tqdm import tqdm
 import cv2
@@ -16,6 +17,7 @@ class KImage(object):
     def __init__(self, filename):
         self.image = Image.open(filename)
         self.filename = Path(filename).name
+        self.img4zbar = ImageOps.grayscale(self.image)
 
 
 def write_on_image(image, text):
@@ -93,9 +95,9 @@ def do_one(image):
     for scalar in [0.5, 0.2, 0.1, 1]:
         tick()
         if scalar != 1:
-            image_scaled = scale_image(image.image, scalar=scalar)
+            image_scaled = scale_image(image.img4zbar, scalar=scalar)
         else:
-            image_scaled = image.image
+            image_scaled = image.img4zbar
         res = qrdecode(image_scaled)
         st = tick()
         union.update(res); total_t += st
