@@ -151,7 +151,8 @@ def create_print_command(ld, user=getpass.getuser(), layout=1, max_field_text_le
                     'QRCODE 50,3,H,4,A,0,M1,"' + ld["id"] + '"\n' + \
                     'TEXT 160,10,"3",0,1,1,"' + ld['id'] + '"\n' + \
                     'TEXT 160,48,"3",0,1,1,"A:' + ld['accession'] + '"\n' + \
-                    'TEXT 320,48,"3",0,1,1,"H:' + ld['isolate'] + '"\n' + \
+                    'TEXT 320,48,"3",0,1,1,"P:' + ld['within_tray_pos'] + '"\n' + \
+                    'TEXT 300,10,"3",0,1,1,"H:' + ld['isolate'] + '"\n' + \
                     'TEXT 460,48,"3",0,1,1,"T:' + ld['timepoint'] + '"\n' + \
                     'TEXT 550,48,"3",0,1,1,"R:' + ld['rep'] + '"\n' + \
                     'TEXT 480,10,"3",0,1,1,"' + ld['date'] + '"\n' + \
@@ -182,6 +183,8 @@ if __name__ == "__main__":
     ap.add_argument("-u", "--user", required=False,
                     help="Override user name to print on the labels. Default is logged in user",
                     default=getpass.getuser())
+    ap.add_argument("-n", "--dry-run", action="store_true",
+                    help="Actually *do* nothing, just print the printer protocol commands to stdout.")
     args = vars(ap.parse_args())
 
     # Read CSV and create labels from it
@@ -195,9 +198,11 @@ if __name__ == "__main__":
 
     # CSV: ID:NNNN, Replicate:NNN, Date: YYYY-MM-DD, Experiment_Id: AANNNN
     
-    device = usb.core.find(idVendor=VENDOR, idProduct=PRODUCT)
-    if device is None:
-        raise Exception('Printer device not found! Check connection!')
+    device = None
+    if not args["dry_run"]:
+        device = usb.core.find(idVendor=VENDOR, idProduct=PRODUCT)
+        if device is None:
+            raise Exception('Printer device not found! Check connection!')
 
     for l in range(len(labels)):
         if print_range is None or (l >= print_range[0] and l < print_range[1]):
@@ -206,6 +211,8 @@ if __name__ == "__main__":
             else:
                 time.sleep(0.2)
             print_cmd = create_print_command(labels.iloc[[l]].to_dict(orient='records')[0], user=args['user'],layout=args['layout'], max_field_text_length=22)
-            print(print_cmd)
-            usb_write(print_cmd.encode('ascii'), device)
-            device.reset()
+            if args["dry_run"]:
+                print(print_cmd)
+            else:
+                usb_write(print_cmd.encode('ascii'), device)
+                device.reset()
