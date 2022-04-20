@@ -34,7 +34,7 @@ class LabelSpec(object):
     hgap = 1*mm
     vmargin = 1.2*mm
     default_layout = "qr_left"
-    layouts = ["qr_left", "qr_right"]
+    layouts = ["qr_left", "qr_right", "multiline_text", "top_half"]
 
     def __init__(self, layout=None):
         self.spec = Specification(**self.page)
@@ -59,11 +59,13 @@ class LabelSpec(object):
         for font_size in range(self.font_size, 2, -1):
             twidth = stringWidth(text, self.font_name, font_size)
             if twidth > available_width:
+                #print(font_size, "too wide")
                 continue
             fnt = getFont(self.font_name).face
             textheight = (((fnt.ascent*font_size) -
                            (fnt.descent*font_size)) / 1000)
             if textheight > available_height:
+                #print(font_size, "too high")
                 continue
             return font_size, twidth, textheight
         print("WARNING: couldn't fit", str(obj), "into", f"{tavail / mm:0.1f}", "mm space availabe")
@@ -83,6 +85,10 @@ class LabelSpec(object):
             qs = ht
         assert ht <= height
 
+        n_lines = text.rstrip("\n").count("\n") + 1
+
+        if self.layout != "multiline_text" and n_lines > 1:
+            print("WARNING: multiple lines in ", str(obj), "but not using multiline format labels")
         if self.layout == "qr_left":
             qleft = hm
             qbottom = vm + (ht - qs) / 2
@@ -159,6 +165,16 @@ class LabelSpec(object):
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
 
+        elif self.layout == "multiline_text":
+            lines = list(text.rstrip().split("\n"))
+            longest_line = max(lines, key=lambda s: len(s))
+            tleft = hm
+            tavail = wd - tleft
+            fsz, tw, th = self.fit_font(longest_line, tavail, ht/n_lines)
+            tbottom = vm + (ht - th*n_lines)/2
+            for i, line in enumerate(reversed(lines)):
+                label.add(shapes.String(tleft, tbottom + i * th, line, fontName=self.font_name, fontSize=fsz))
+
 
 class L7636(LabelSpec):
     description = "Mid-sized rounded rectangular labels (45x22mm) in sheets of 4x12"
@@ -198,7 +214,6 @@ class L3666(LabelSpec):
     font_size = 12
     name = "L3666"
     qrsize = 13*mm
-    layouts = ["qr_left", "qr_right", "top_half"]
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 5, "rows": 13,
@@ -215,6 +230,7 @@ class L7658(LabelSpec):
     font_size = 11
     name = "L7658"
     qrsize = 7.5*mm
+    layouts = ["qr_left", "qr_right"]
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 7, "rows": 27,
@@ -339,9 +355,10 @@ label_types = {
 }
 
 
-def generate_labels(labeltype, text_source, copies=1, border=True):
+def generate_labels(labeltype, text_source, copies=1, border=True, line_delim="\t"):
     sheet = Sheet(labeltype.spec, labeltype.make_label, border=border)
     for obj in tqdm(text_source):
+        obj = obj.replace(line_delim, "\n")
         sheet.add_label(obj, count=copies)
     return sheet 
 
@@ -367,6 +384,8 @@ To actually do anything, you need one of the following:
             help="Write a demo (10 labels, four reps per label) for each label type to DIR.")
     ap.add_argument("--list-label-types", action="store_true",
             help="Write a list of label types.")
+    ap.add_argument("--line-delim", type=str, default="|",
+            help="Line delimiter for multi-line strings.")
     ap.add_argument("--label-type", "-l", choices=list(label_types.keys()),
             help="Label type.")
     ap.add_argument("--layout", default=None,
@@ -416,7 +435,7 @@ To actually do anything, you need one of the following:
     else:
         ids = [args.id_format.format(i) for i in range(args.id_start, args.id_end+1)]
 
-    sht = generate_labels(label_types[args.label_type](layout=args.layout), ids, copies=args.copies, border=args.border)
+    sht = generate_labels(label_types[args.label_type](layout=args.layout), ids, copies=args.copies, border=args.border, line_delim=args.line_delim)
     sht.save(args.output)
 
 
