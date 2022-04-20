@@ -34,11 +34,7 @@ def main():
 """
     ap = argparse.ArgumentParser(epilog=morehelp, formatter_class=argparse.RawDescriptionHelpFormatter, prog="labelmaker")
     ap.add_argument("--template", "-t", type=str, required=True,
-            help="SVG template.")
-    ap.add_argument("--layout", default=None,
-            help="Label layout. See --list-label-types for a list of supported layouts per label type.")
-    ap.add_argument("--copies", type=int, default=1, metavar="N",
-            help="Create N copies of each label.")
+            help="SVG template file. Must define id_image and id_text as custom template-id attributes on a rectangle and tspan respectively.")
     ap.add_argument("--output", "-o", type=argparse.FileType("wb"), metavar="FILE",
             help="Output PDF file.")
     ap.add_argument("--id-file", "-f", type=argparse.FileType("r"), metavar="FILE",
@@ -49,8 +45,6 @@ def main():
             help="First ID number (default 1)")
     ap.add_argument("--id-end", type=int, default=100, metavar="N",
             help="Last ID number (default 100)")
-    ap.add_argument("--border", action="store_true",
-            help="Show a border around each label.")
     args = ap.parse_args()
 
     if args.id_file is None and args.id_format is None:
