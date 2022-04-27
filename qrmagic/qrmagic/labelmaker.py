@@ -34,7 +34,7 @@ class LabelSpec(object):
     hgap = 1*mm
     vmargin = 1.2*mm
     default_layout = "qr_left"
-    layouts = ["qr_left", "qr_right", "multiline_text", "top_half"]
+    layouts = ["qr_left", "qr_right", "multiline_text", "top_half", "qr_multiline"]
 
     def __init__(self, layout=None):
         self.spec = Specification(**self.page)
@@ -87,7 +87,7 @@ class LabelSpec(object):
 
         n_lines = text.rstrip("\n").count("\n") + 1
 
-        if self.layout != "multiline_text" and n_lines > 1:
+        if not self.layout in ("multiline_text", "qr_multiline")  and n_lines > 1:
             print("WARNING: multiple lines in ", str(obj), "but not using multiline format labels")
         if self.layout == "qr_left":
             qleft = hm
@@ -174,6 +174,22 @@ class LabelSpec(object):
             tbottom = vm + (ht - th*n_lines)/2
             for i, line in enumerate(reversed(lines)):
                 label.add(shapes.String(tleft, tbottom + i * th, line, fontName=self.font_name, fontSize=fsz))
+
+        elif self.layout == "qr_multiline":
+            lines = list(text.rstrip().split("\n"))
+
+            qleft = hm
+            qbottom = vm + (ht - qs) / 2
+            label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(lines[0])))
+
+            longest_line = max(lines, key=lambda s: len(s))
+            tleft = qleft + qs + hg
+            tavail = wd - tleft
+            fsz, tw, th = self.fit_font(longest_line, tavail, ht/n_lines)
+            tbottom = vm + (ht - th*n_lines)/2
+            for i, line in enumerate(reversed(lines)):
+                label.add(shapes.String(tleft, tbottom + i * th, line, fontName=self.font_name, fontSize=fsz))
+
 
 
 class L7636(LabelSpec):
@@ -321,6 +337,25 @@ class Zweckform6252(LabelSpec):
             }
 
 
+class LCRY1700(LabelSpec):
+    description = "Cryo Labels on American paper"
+    font_name = "Helvetica"
+    font_size = 8
+    name = "LCRY1700"
+    qrsize = 8*mm
+    hmargin = 2.5*mm
+    vmargin = 2*mm
+    layouts = ["qr_left", "qr_right", "multiline_text", "qr_multiline"]
+    page = {
+            "sheet_width": 215.9, "sheet_height": 279.4,
+            "columns": 5, "rows": 17,
+            "label_width": 32.512, "label_height": 12.7,
+            "corner_radius": 3,
+            "left_margin": 19.7, "right_margin": 19.5,
+            "top_margin": 6.5, "bottom_margin": 6.5,
+    }
+
+
 class Zweckform3671(LabelSpec):
     description = "64x45mm labels, sheets of 18."
     font_name = "Helvetica"
@@ -352,6 +387,7 @@ label_types = {
     "Zweckform6252": Zweckform6252,
     "Zweckform3671": Zweckform3671,
     "CryoLabel": CryoLabel,
+    "LCRY1700": LCRY1700,
 }
 
 
