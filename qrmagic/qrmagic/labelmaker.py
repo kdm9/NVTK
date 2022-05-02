@@ -19,11 +19,6 @@ import sys
 
 __all__ = [
         "label_types",
-        "CryoLabel",
-        "Avery94214",
-        "L7658",
-        "L3667",
-        "L7636",
         "generate_labels",
         "main",
 ]
@@ -36,13 +31,15 @@ class LabelSpec(object):
     default_layout = "qr_left"
     layouts = ["qr_left", "qr_right", "multiline_text", "top_half", "qr_multiline"]
 
-    def __init__(self, layout=None):
+    def __init__(self, layout=None, qrsize=None):
         self.spec = Specification(**self.page)
         if layout is None:
             layout = self.default_layout
         if layout not in self.layouts:
             raise ValueError(f"Invalid layout {layout}")
         self.layout = layout
+        if qrsize is not None:
+            self.qrsize = qrsize * mm
 
     def qrimg(self, data):
         qr = qrcode.QRCode(
@@ -389,6 +386,7 @@ label_types = {
     "CryoLabel": CryoLabel,
     "LCRY1700": LCRY1700,
 }
+__all__.extend(label_types.keys())
 
 
 def generate_labels(labeltype, text_source, copies=1, border=True, line_delim="\t"):
@@ -422,6 +420,8 @@ To actually do anything, you need one of the following:
             help="Write a list of label types.")
     ap.add_argument("--line-delim", type=str, default="|",
             help="Line delimiter for multi-line strings.")
+    ap.add_argument("--qr-size", "-q", type=int,
+            help="Override qr size.")
     ap.add_argument("--label-type", "-l", choices=list(label_types.keys()),
             help="Label type.")
     ap.add_argument("--layout", default=None,
@@ -471,7 +471,7 @@ To actually do anything, you need one of the following:
     else:
         ids = [args.id_format.format(i) for i in range(args.id_start, args.id_end+1)]
 
-    sht = generate_labels(label_types[args.label_type](layout=args.layout), ids, copies=args.copies, border=args.border, line_delim=args.line_delim)
+    sht = generate_labels(label_types[args.label_type](layout=args.layout, qrsize=args.qr_size), ids, copies=args.copies, border=args.border, line_delim=args.line_delim)
     sht.save(args.output)
 
 
