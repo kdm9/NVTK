@@ -1,0 +1,33 @@
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+</head>
+<body>
+<div id="labsheet">
+    <div id="div-form-setup">
+        <label for="label-type">Select label type</label>
+        <select name="label-type" id="label-type" v-model="labelType" form="form-setup" @change="labelTypeUpdate()">
+            <option v-for="(ltype, index) in labelTypes" :value="index">{{ltype.title}}</option>
+        </select>
+
+        <label v-if="labelType" for="layout">Select label layout</label>
+        <select v-if="labelType" name="layout" id="layout" v-model="layout" form="form-setup">
+            <option v-for="(layout, index) in labelTypes[labelType].layouts" :value="layout">{{layout}}</option>
+        </select>
+
+        <label v-if="cells.length > 0">Enter label texts, click -&gt;&gt; <button v-if="cells.length > 0" @click="downloadLabelTxtFile" id="downloadTxtFile">Download Label File</button>, then use the following command to make your labels:</label>
+        <textarea v-if="cells.length > 0" id="command" v-model="command"></textarea>
+
+    </div>
+    <div id="div-table">
+        <table class="table">
+            <tbody>
+                <tr v-for="rowindex in nrow" style="backgroundColor: #eaeaea;">
+                    <td v-for="colindex in ncol" style="width: 300px; padding: 0;"><input style="padding: 0;" v-model="cells[(rowindex-1) * nrow + (colindex-1)]"/></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="./labelsheet.js"></script>
+</body>

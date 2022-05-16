@@ -1,0 +1,205 @@
+[
+   {"name": "L7636",
+        "title": "L7636: Mid-sized rounded rectangular labels (45x22mm) in sheets of 4x12",
+        "layouts": [
+            "qr_left",
+            "qr_right",
+            "multiline_text",
+            "top_half",
+            "qr_multiline"
+        ],
+        "default_layout": "qr_left",
+        "pagesize": [
+            210,
+            297
+        ],
+        "ncol": 4,
+        "nrow": 12,
+        "labelsize": [
+            45.7,
+            21.2
+        ]
+    },
+    {
+        "name": "L3667",
+        "title": "L3667: Mid-sized rectangular labels (48x17mm) in sheets of 4x16",
+        "layouts": [
+            "qr_left",
+            "qr_right",
+            "multiline_text",
+            "top_half",
+            "qr_multiline"
+        ],
+        "default_layout": "qr_left",
+        "pagesize": [
+            210,
+            297
+        ],
+        "ncol": 4,
+        "nrow": 16,
+        "labelsize": [
+            48.5,
+            16.9
+        ]
+    },
+    {
+        "name": "L3666",
+        "title": "L3666: Mid-sized rectangular labels (38x22mm) in sheets of 5x13",
+        "layouts": [
+            "qr_left",
+            "qr_right",
+            "multiline_text",
+            "top_half",
+            "qr_multiline"
+        ],
+        "default_layout": "qr_left",
+        "pagesize": [
+            210,
+            297
+        ],
+        "ncol": 5,
+        "nrow": 13,
+        "labelsize": [
+            38,
+            21.2
+        ]
+    },
+    {
+        "name": "L7658",
+        "title": "L7658: Small labels (25x10mm) in sheets of 7x27",
+        "layouts": [
+            "qr_left",
+            "qr_right"
+        ],
+        "default_layout": "qr_left",
+        "pagesize": [
+            210,
+            297
+        ],
+        "ncol": 7,
+        "nrow": 27,
+        "labelsize": [
+            25.4,
+            10
+        ]
+    },
+    {
+        "name": "Avery94214",
+        "title": "Avery94214: Long Labels for 5mL eppies (American).",
+        "layouts": [
+            "qr_left",
+            "qr_right"
+        ],
+        "default_layout": "qr_left",
+        "pagesize": [
+            215.9,
+            279.4
+        ],
+        "ncol": 2,
+        "nrow": 16,
+        "labelsize": [
+            76.2,
+            15.875
+        ]
+    },
+    {
+        "name": "Herma4265",
+        "title": "Herma4265: Large rectangular address labels (for large qrcodes), sheets of 18",
+        "layouts": [
+            "qr_right_verticaltext",
+            "qr_left_verticaltext"
+        ],
+        "default_layout": "qr_left_verticaltext",
+        "pagesize": [
+            210,
+            297
+        ],
+        "ncol": 3,
+        "nrow": 6,
+        "labelsize": [
+            63.5,
+            46.56
+        ]
+    },
+    {
+        "name": "Zweckform6252",
+        "title": "Zweckform6252: Square 45mm labels, sheets of 20.",
+        "layouts": [
+            "qr_top",
+            "qr_right_verticaltext",
+            "qr_left_verticaltext"
+        ],
+        "default_layout": "qr_top",
+        "pagesize": [
+            210,
+            297
+        ],
+        "ncol": 4,
+        "nrow": 5,
+        "labelsize": [
+            45,
+            45
+        ]
+    },
+    {
+        "name": "Zweckform3671",
+        "title": "Zweckform3671: 64x45mm labels, sheets of 18.",
+        "layouts": [
+            "qr_top",
+            "qr_right_verticaltext",
+            "qr_left_verticaltext",
+            "qr_left",
+            "qr_right"
+        ],
+        "default_layout": "qr_left_verticaltext",
+        "pagesize": [
+            210,
+            297
+        ],
+        "ncol": 3,
+        "nrow": 6,
+        "labelsize": [
+            64,
+            45
+        ]
+    },
+    {
+        "name": "CryoLabel",
+        "title": "CryoLabel: Cryo Labels for screw-cap eppies. White on left half, clear on right. 63mmx15mm in sheets of 3x18",
+        "layouts": [
+            "qr_left"
+        ],
+        "default_layout": "qr_left",
+        "pagesize": [
+            210,
+            297
+        ],
+        "ncol": 3,
+        "nrow": 18,
+        "labelsize": [
+            63,
+            15
+        ]
+    },
+    {
+        "name": "LCRY1700",
+        "title": "LCRY1700: Cryo Labels on American paper",
+        "layouts": [
+            "qr_left",
+            "qr_right",
+            "multiline_text",
+            "qr_multiline"
+        ],
+        "default_layout": "qr_left",
+        "pagesize": [
+            215.9,
+            279.4
+        ],
+        "ncol": 5,
+        "nrow": 17,
+        "labelsize": [
+            32.512,
+            12.7
+        ]
+    }
+]

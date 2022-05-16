@@ -1,10 +1,12 @@
 const path = require('path');
+const webpack = require('webpack');
 const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',
   entry: {
       "imagesort": './src/imagesort.js',
+      "labelsheet": './src/labelsheet.js',
       "index": './src/index.js',
   },
   output: {
@@ -30,5 +32,8 @@ module.exports = {
         { context: './src/static', from: "*", to: "", toType: "dir"},
       ],
     }),
+    new webpack.DefinePlugin({
+      __VUE_PROD_DEVTOOLS__: true,
+    })
   ],
 };

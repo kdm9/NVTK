@@ -15,6 +15,7 @@ from tqdm import tqdm
 
 import argparse
 import sys
+import json
 
 
 __all__ = [
@@ -387,6 +388,22 @@ label_types = {
     "LCRY1700": LCRY1700,
 }
 __all__.extend(label_types.keys())
+
+labeltype_json = {}
+for lt in label_types:
+    cls = label_types[lt]
+    labeltype_json[lt] = {
+        "name": cls.name,
+        "title": f"{lt}: {cls.description}",
+        "layouts": cls.layouts,
+        "default_layout": cls.default_layout,
+        "pagesize": (cls.page["sheet_width"], cls.page["sheet_height"]),
+        "ncol": cls.page["columns"],
+        "nrow": cls.page["rows"],
+        "labelsize": (cls.page["label_width"], cls.page["label_height"]),
+        }
+print(json.dumps(labeltype_json, indent=4))
+
 
 
 def generate_labels(labeltype, text_source, copies=1, border=True, line_delim="\t"):
