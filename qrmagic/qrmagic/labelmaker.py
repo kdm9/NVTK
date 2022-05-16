@@ -32,13 +32,14 @@ class LabelSpec(object):
     default_layout = "qr_left"
     layouts = ["qr_left", "qr_right", "multiline_text", "top_half", "qr_multiline"]
 
-    def __init__(self, layout=None, qrsize=None):
+    def __init__(self, layout=None, qrsize=None, line_delim=","):
         self.spec = Specification(**self.page)
         if layout is None:
             layout = self.default_layout
         if layout not in self.layouts:
             raise ValueError(f"Invalid layout {layout}")
         self.layout = layout
+        self.line_delim = line_delim
         if qrsize is not None:
             self.qrsize = qrsize * mm
 
@@ -83,10 +84,10 @@ class LabelSpec(object):
             qs = ht
         assert ht <= height
 
-        n_lines = text.rstrip("\n").count("\n") + 1
+        lines = list(text.rstrip().rstrip(self.line_delim).split(self.line_delim))
+        longest_line = max(lines, key=lambda s: len(s))
+        n_lines = len(lines)
 
-        if not self.layout in ("multiline_text", "qr_multiline")  and n_lines > 1:
-            print("WARNING: multiple lines in ", str(obj), "but not using multiline format labels")
         if self.layout == "qr_left":
             qleft = hm
             qbottom = vm + (ht - qs) / 2
@@ -164,8 +165,6 @@ class LabelSpec(object):
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
 
         elif self.layout == "multiline_text":
-            lines = list(text.rstrip().split("\n"))
-            longest_line = max(lines, key=lambda s: len(s))
             tleft = hm
             tavail = wd - tleft
             fsz, tw, th = self.fit_font(longest_line, tavail, ht/n_lines)
@@ -174,13 +173,10 @@ class LabelSpec(object):
                 label.add(shapes.String(tleft, tbottom + i * th, line, fontName=self.font_name, fontSize=fsz))
 
         elif self.layout == "qr_multiline":
-            lines = list(text.rstrip().split("\n"))
-
             qleft = hm
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(lines[0])))
 
-            longest_line = max(lines, key=lambda s: len(s))
             tleft = qleft + qs + hg
             tavail = wd - tleft
             fsz, tw, th = self.fit_font(longest_line, tavail, ht/n_lines)
@@ -404,10 +400,9 @@ for lt in label_types:
         }
 
 
-def generate_labels(labeltype, text_source, copies=1, border=True, line_delim="\t"):
+def generate_labels(labeltype, text_source, copies=1, border=False, line_delim=","):
     sheet = Sheet(labeltype.spec, labeltype.make_label, border=border)
     for obj in tqdm(text_source):
-        obj = obj.replace(line_delim, "\n")
         sheet.add_label(obj, count=copies)
     return sheet 
 
@@ -433,7 +428,7 @@ To actually do anything, you need one of the following:
             help="Write a demo (10 labels, four reps per label) for each label type to DIR.")
     ap.add_argument("--list-label-types", action="store_true",
             help="Write a list of label types.")
-    ap.add_argument("--line-delim", type=str, default="|",
+    ap.add_argument("--line-delim", type=str, default=",",
             help="Line delimiter for multi-line strings.")
     ap.add_argument("--qr-size", "-q", type=int,
             help="Override qr size.")

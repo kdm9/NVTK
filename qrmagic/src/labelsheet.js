@@ -16,6 +16,11 @@ var vm = new Vue({
         labelType: false,
         layout: false,
         labelTypes: LabelTypes,
+        mode: "hidden",
+        border: false,
+        id_format: "TEST{:04d}",
+        id_start: 1,
+        id_end: 100,
         cells: [],
         nrow: 0,
         ncol: 0
@@ -28,6 +33,40 @@ var vm = new Vue({
         }
     },
     methods: {
+        async downloadPDF(e) {
+            var base = {
+                label_type: this.$data.labelTypes[this.$data.labelType].name,
+                layout: this.$data.layout
+            };
+            var req = {};
+            if (this.$data.mode == "table") {
+                req = Object.assign(base, {
+                    ids_txt: this.$data.cells.join("\n")
+                });
+            } else {
+                req = Object.assign(base, {
+                    id_format: this.$data.id_format,
+                    id_start: this.$data.id_start,
+                    id_end: this.$data.id_end
+                });
+            }
+
+            fetch("/api/labels_pdf", {
+                method: 'POST',
+                body: JSON.stringify(req)
+            }).then(function(resp) {
+                return resp.blob();
+            }).then(function(blob) {
+                console.log(blob);
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = "labels.pdf";
+                document.body.append(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 9000);
+            });
+        },
         async labelTypeUpdate(e) {
             const lt = this.$data.labelTypes[this.$data.labelType];
             this.$data.layout = lt.default_layout;
