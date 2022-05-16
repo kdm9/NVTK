@@ -22,13 +22,17 @@
     <table class="resulttable">
         <thead>
             <tr>
-                <th>Image</th><th>Sample ID</th><th>Date/Time</th><th>Latitute</th><th>Longitude</th>
+                <th>Image</th><th>Sample ID</th><th>Date/Time</th><th>Filename</th><th>Latitute</th><th>Longitude</th>
             </tr>
         </thead>
         <tbody>
-            <tr v-for="(image, index) in images" v-if='!hideFilled || image.id == ""' :key="image.filename">
+            <tr v-for="(image, index) in images" v-if='!hideFilled || image.id == ""' :style='{backgroundColor: image.id == "" ? "#ffff7c" : "#ffffff"}' :key="image.filename">
                 <th><img :src="image.image" height=100px style="height: 100px; object-fit: cover;" @click="setZoomImage(image)"/></th>
-                <th><button v-on:click="removeImage(index)" tabindex="-1" ><img src="./trash.svg" height=25px></img></button></th><th><input v-on:focus="idFromPreviousIfEmpty(index)" v-model="image.id"/></th><th>{{image.datestr}}</th><th><span v-if="image.lat">{{image.lat.toFixed(5)}}</span></th><th><span v-if="image.lng">{{image.lng.toFixed(5)}}</span></th>
+                <th><button v-on:click="removeImage(index)" tabindex="-1" ><img src="./trash.svg" height=25px></img></button></th>
+                <th><input v-on:focus="idFromPreviousIfEmpty(index)" v-model="image.id"/></th>
+                <th>{{image.datestr}}</th>
+                <th>{{image.filename}}</th>
+                <th><span v-if="image.lat">{{image.lat.toFixed(5)}}</span></th><th><span v-if="image.lng">{{image.lng.toFixed(5)}}</span></th>
             </tr>
         </tbody>
     </table>
