@@ -36,10 +36,6 @@
     </div>
     <div id="div-table" v-if="mode=='table' && labelType !== false">
         <label>Enter label texts, then</label> <button @click="downloadPDF" id="downloadPDFfmt">Download Label File</button>
-        <!--
-	    <label>- or click -&gt;&gt; <button v-if="cells.length > 0" @click="downloadLabelTxtFile" id="downloadTxtFile">Download Label File</button>, then use the following command to make your labels:</label>
-        <textarea v-if="cells.length > 0" id="command" v-model="command"></textarea>
-        -->
 
         <table class="table">
             <tbody>

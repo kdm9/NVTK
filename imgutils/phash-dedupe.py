@@ -49,6 +49,8 @@ class ImgMetaHash(object):
         self.datetime = None
         self.lat = None
         self.lon = None
+        self.width = None
+        self.height = None
         self.alt = None
         self.hash = None
         self.sha1 = None
