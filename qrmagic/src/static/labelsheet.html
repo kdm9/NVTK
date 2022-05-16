@@ -23,7 +23,7 @@
         <table class="table">
             <tbody>
                 <tr v-for="rowindex in nrow" style="backgroundColor: #eaeaea;">
-                    <td v-for="colindex in ncol" style="width: 300px; padding: 0;"><input style="padding: 0;" v-model="cells[(rowindex-1) * nrow + (colindex-1)]"/></td>
+                    <td v-for="colindex in ncol" style="width: 300px; padding: 0;"><input style="padding: 0;" v-model="cells[(rowindex-1) * ncol + (colindex-1)]"/></td>
                 </tr>
             </tbody>
         </table>

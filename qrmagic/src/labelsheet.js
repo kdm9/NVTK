@@ -39,16 +39,16 @@ var vm = new Vue({
 
         },
         async downloadLabelTxtFile() {
+            console.log(this.$data);
             // Download file
             var element = document.createElement('a');
-            element.style.display = 'none';                                 
+            element.style.display = 'none';
             element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(this.$data.cells.join("\n")));
-            element.setAttribute('download', "labels.txt");                         
-            document.body.appendChild(element);                             
-            element.click();    
+            element.setAttribute('download', "labels.txt");
+            document.body.appendChild(element);
+            element.click();
             document.body.removeChild(element);
             console.log(this.$data.cells);
-            e.preventDefault();
         }
     }
 });

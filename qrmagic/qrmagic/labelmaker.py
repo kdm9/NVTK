@@ -402,8 +402,6 @@ for lt in label_types:
         "nrow": cls.page["rows"],
         "labelsize": (cls.page["label_width"], cls.page["label_height"]),
         }
-print(json.dumps(labeltype_json, indent=4))
-
 
 
 def generate_labels(labeltype, text_source, copies=1, border=True, line_delim="\t"):

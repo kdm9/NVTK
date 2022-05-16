@@ -5,9 +5,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from sys import stderr
 from PIL import Image
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw, ImageFont
-import HeifImagePlugin
+try:
+    import HeifImagePlugin
+except ImportError:
+    print("Failed to load HeifImagePlugin. *.HEIF won't be supported.", file=stderr)
 from PIL.ExifTags import TAGS, GPSTAGS
 from pyzbar.pyzbar import decode, ZBarSymbol
 from tqdm import tqdm
@@ -26,7 +30,6 @@ import base64
 from io import BytesIO
 from urllib.request import urlopen
 import multiprocessing as mp
-from sys import stderr
 
 # TODO: make scale_image a separate function, reduce duplication
 # TODO: PIL image to jpeg dataurl helper function
