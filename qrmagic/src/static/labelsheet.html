@@ -14,15 +14,15 @@
             <option v-for="(ltype, index) in labelTypes" :value="index">{{ltype.title}}</option>
         </select>
 
-        <label v-if="labelType" for="layout">Select label layout</label>
-        <select v-if="labelType" name="layout" id="layout" v-model="layout">
+        <label v-if="labelType !== false" for="layout">Select label layout</label>
+        <select v-if="labelType !== false" name="layout" id="layout" v-model="layout">
             <option v-for="(layout, index) in labelTypes[labelType].layouts" :value="layout">{{layout}}</option>
         </select>
 
         <label for="border">Print border?</label>
         <input name="border" id="border" v-model="border" type="checkbox">
     </div>
-    <div id="div-format" v-if="mode=='format' && labelType">
+    <div id="div-format" v-if="mode=='format' && labelType !== false">
         <label for="id_fmt">ID Format (e.g <code>K{:04d}</code> -&gt; K0001)</label>
         <input name="id_fmt" id="id_fmt" v-model="id_format" type="text">
 
@@ -34,7 +34,7 @@
 
         <button @click="downloadPDF" id="downloadPDFfmt">Download Label File</button>
     </div>
-    <div id="div-table" v-if="mode=='table' && labelType">
+    <div id="div-table" v-if="mode=='table' && labelType !== false">
         <label>Enter label texts, then</label> <button @click="downloadPDF" id="downloadPDFfmt">Download Label File</button>
         <!--
 	    <label>- or click -&gt;&gt; <button v-if="cells.length > 0" @click="downloadLabelTxtFile" id="downloadTxtFile">Download Label File</button>, then use the following command to make your labels:</label>
