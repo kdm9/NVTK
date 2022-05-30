@@ -257,9 +257,9 @@ class CryoLabel(LabelSpec):
     font_size = 10
     name = "CryoLabel"
     qrsize = 9*mm
-    hmargin = 2.5*mm
+    hmargin = 1.5*mm
     vmargin = 2*mm
-    layouts = ["qr_left", ]
+    layouts = ["qr_left", "qr_multiline"]
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 3, "rows": 18,
