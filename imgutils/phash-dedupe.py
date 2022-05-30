@@ -2,6 +2,10 @@
 import imagehash
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
+try:
+    import HeifImagePlugin
+except ImportError:
+    print("Failed to load HeifImagePlugin. *.HEIF won't be supported.", file=stderr)
 from tqdm import tqdm
 
 import argparse
@@ -16,6 +20,7 @@ import multiprocessing as mp
 from collections import defaultdict
 from sys import stderr, stdout, stdin
 from hashlib import sha1
+import numpy as np
 
 
 def get_logger(level=INFO):
@@ -54,6 +59,7 @@ class ImgMetaHash(object):
         self.alt = None
         self.hash = None
         self.sha1 = None
+        self.pixelsha1 = None
         filedata = None
         if path is not None:
             self.filename = path
@@ -68,6 +74,7 @@ class ImgMetaHash(object):
             self.width, self.height = self.image.size
             self.hash = imagehash.whash(self.image)
             self.parse_exif()
+            self.pixelsha1 = sha1hash(np.asarray(self.image).tobytes())
             del self.image
         except Exception as exc:
             LOG.error("Couldn't read or process image '%s'", self.filename)
@@ -86,10 +93,11 @@ class ImgMetaHash(object):
                 "width": self.width,
                 "height": self.height,
                 "hash": str(self.hash),
-                "sha1": self.sha1}
+                "sha1": self.sha1,
+                "pixelsha1": self.pixelsha1}
 
     def parse_exif(self):
-        exifdata = self.image._getexif()
+        exifdata = self.image.getexif()
         decoded = dict((TAGS.get(key, key), value) for key, value in exifdata.items())
         try:
             datetime = decoded['DateTimeOriginal']
@@ -150,11 +158,16 @@ def climain():
             help="Number of CPUs to use for image decoding/scanning")
     ap.add_argument("-o", "--output", type=argparse.FileType("w"), default="-",
             help="ND-JSON output file.")
+    ap.add_argument("-0", action="store_true", dest="null",
+            help="Parse null-delimited list of filenames.")
     ap.add_argument("images", nargs="+", help="List of images. Give '-' to accept newline delimited list from stdin.")
     args = ap.parse_args()
 
     if args.images[0] == "-":
-        args.images = [l.rstrip("\n") for l in stdin]
+        if args.null:
+            args.images = stdin.read().split("\0")
+        else:
+            args.images = [l.rstrip("\n") for l in stdin]
         
     # Setup output
     if args.threads > 1:
@@ -170,7 +183,7 @@ def climain():
     
     byhash = defaultdict(list)
     for image in images:
-        byhash[str(image.hash)].append(image.json())
+        byhash[str(image.pixelsha1)].append(image.json())
 
     json.dump(byhash, args.output, indent=4)
 
