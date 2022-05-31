@@ -30,7 +30,7 @@ class LabelSpec(object):
     hgap = 1*mm
     vmargin = 1.2*mm
     default_layout = "qr_left"
-    layouts = ["qr_left", "qr_right", "multiline_text", "top_half", "qr_multiline"]
+    layouts = ["qr_left", "qr_left_texttop",  "qr_right", "multiline_text", "top_half", "qr_multiline"]
 
     def __init__(self, layout=None, qrsize=None, line_delim=","):
         self.spec = Specification(**self.page)
@@ -88,17 +88,20 @@ class LabelSpec(object):
         longest_line = max(lines, key=lambda s: len(s))
         n_lines = len(lines)
 
-        if self.layout == "qr_left":
+        if self.layout in ("qr_left", "qr_left_texttop"):
             qleft = hm
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
             tleft = qleft + qs + hg
             tavail = wd - tleft
             fsz, tw, th = self.fit_font(text, tavail, ht)
-            tbottom = vm + (ht - th)/2
+            if self.layout == "qr_left":
+                tbottom = vm + (ht - th)/2
+            else:
+                tbottom = height - vm - th*1.1
             label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
 
-        elif self.layout == "qr_right":
+        elif self.layout in ("qr_right", "qr_right_texttop"):
             qleft = width - qs - hm
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
@@ -106,7 +109,10 @@ class LabelSpec(object):
             tavail = tright - hm
             fsz, tw, th = self.fit_font(text, tavail, ht)
             tleft = tright - tw
-            tbottom = vm + (ht - th)/2
+            if self.layout == "qr_right":
+                tbottom = vm + (ht - th)/2
+            else:
+                tbottom = ht - vm - th
             label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
 
         elif self.layout == "top_half":
@@ -257,15 +263,15 @@ class CryoLabel(LabelSpec):
     font_size = 10
     name = "CryoLabel"
     qrsize = 9*mm
-    hmargin = 1.5*mm
+    hmargin = 2*mm
     vmargin = 2*mm
-    layouts = ["qr_left", "qr_multiline"]
+    layouts = ["qr_left", "qr_left_texttop", "qr_multiline"]
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 3, "rows": 18,
             "label_width": 63, "label_height": 15,
             "corner_radius": 1,
-            "left_margin": 7, "top_margin": 21,
+            "left_margin": 8, "top_margin": 22,
             "row_gap": 0, "column_gap": 3,
     }
 
