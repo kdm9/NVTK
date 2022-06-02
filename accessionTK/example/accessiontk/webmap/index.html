@@ -1,0 +1,62 @@
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.js"
+        crossorigin="anonymous"></script>
+
+    <!-- vue -->
+    <script src="https://unpkg.com/vue@3"></script>
+
+    <!-- leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+        crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+        crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+       crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+       crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-providers/1.13.0/leaflet-providers.min.js" integrity="sha512-5EYsvqNbFZ8HX60keFbe56Wr0Mq5J1RrA0KdVcfGDhnjnzIRsDrT/S3cxdzpVN2NGxAB9omgqnlh4/06TvWCMw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- lightbox -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js" integrity="sha512-k2GFCTbp9rQU412BStrcD/rlwv1PYec9SNrkbQlo6RZCf75l6KcC3UwDY8H5n5hl4v77IDtIPwOk9Dqjs/mMBQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" integrity="sha512-ZKX+BvQihRJPA8CROKBhDNvoc2aDMOdAlcm7TUQY+35XYtrd3yh95QOOhsPDQY9QnKE0Wqag9y38OIgEvb88cA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Milligram CSS -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+
+</head>
+<body>
+<div id="mapapp"  style="height: 100%; margin: 0; display: flex; flex-flow: column;">
+    <div id="mapdiv" style="height: 95%; flex: 0 1 auto;"></div>
+    <div id="buttons" style="flex: 0 1 30px;">
+        <button type="button" id="btnSwitchBasemap" @click="onSwitchBasemap()">Switch Basemap</button>
+        <button type="button" id="btnFullMap" @click="onFullMap()">Maximise Map</button>
+        <button type="button" id="btnHalfMap" @click="onHalfMap()">Half-screen Map</button>
+        <button type="button" id="btnNoMap" @click="onNoMap()">Minimise Map</button>
+    </div>
+    <div id="maintable" v-if="current_locality !== false" style="overflow-y: auto;">
+        <h1>{{current_locality}}</h1>
+        <div class="localitytable"> <table>
+            <p>{{localities[current_locality].locality_description}}</p>
+            <tr><th>Sample</th><th>Image(s)</th></tr>
+            <tr v-for="(indiv, indidx) in localities[current_locality].individuals"><td>{{indiv.individual}}</td><td>
+                <div id="gal4current" class="gal4sample">
+                    <a v-for="(img, imgidx) in indiv.images" :href="img.large" itemprop="contentUrl" data-lightbox="current" :data-title="indiv.individual">
+                        <img itemprop="thumbnail" :src="img.thumb" style="max-height: 100px;"/>
+                    </a>
+                </div>
+            </td></tr>
+        </table></div>
+    </div>
+</div>
+
+<!-- internal code -->
+<script src="./mapapp.js"></script>
+</body>
