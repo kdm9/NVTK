@@ -31,6 +31,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
 
+    __EXTRA_HEADER__
 </head>
 <body>
 <div id="mapapp"  style="height: 100%; margin: 0; display: flex; flex-flow: column;">
@@ -43,10 +44,16 @@
     </div>
     <div id="maintable" v-if="current_locality !== false" style="overflow-y: auto;">
         <h1>{{current_locality}}</h1>
+	<p v-html="localities[current_locality].locality_description"></p>
+	<div id="gal4locality" class="gal4locality">
+	    <a v-for="(img, imgidx) in localities[current_locality].images" :href="img.large" itemprop="contentUrl" data-lightbox="locality" :data-title="current_locality">
+		<img itemprop="thumbnail" :src="img.thumb" style="max-height: 100px;"/>
+	    </a>
+	</div>
+
         <div class="localitytable"> <table>
-            <p>{{localities[current_locality].locality_description}}</p>
-            <tr><th>Sample</th><th>Image(s)</th></tr>
-            <tr v-for="(indiv, indidx) in localities[current_locality].individuals"><td>{{indiv.individual}}</td><td>
+	    <tr><th>Sample</th><th>Date</th><th>Image(s)</th></tr>
+	    <tr v-for="(indiv, indidx) in localities[current_locality].individuals"><td>{{indiv.individual}}</td><td>{{indiv.datetime}}</td><td>
                 <div id="gal4current" class="gal4sample">
                     <a v-for="(img, imgidx) in indiv.images" :href="img.large" itemprop="contentUrl" data-lightbox="current" :data-title="indiv.individual">
                         <img itemprop="thumbnail" :src="img.thumb" style="max-height: 100px;"/>
@@ -59,4 +66,5 @@
 
 <!-- internal code -->
 <script src="./mapapp.js"></script>
+__EXTRA_FOOTER__
 </body>

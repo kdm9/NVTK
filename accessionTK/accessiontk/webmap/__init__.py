@@ -1,4 +1,5 @@
 #!/usr/bin/env
+from sys import stderr
 from PIL import Image
 try:
     import HeifImagePlugin
@@ -13,6 +14,11 @@ from csv import DictReader
 from glob import glob
 from collections import defaultdict
 import json
+import os.path
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    import importlib_resources as pkg_resources
 
 
 def write_images(outprefix: str, srcpath: Path, widths: dict[str, int] = {"thumb": 200, "large": 1920}) -> list[str]:
@@ -35,6 +41,11 @@ def write_images(outprefix: str, srcpath: Path, widths: dict[str, int] = {"thumb
         resized.save(outfile)
     return outpaths
 
+def load_file_or_get_text(fileortext):
+    if os.path.exists(fileortext):
+        with open(fileortext) as fh:
+            return fh.read()
+    return fileortext
 
 def main():
     ap = argparse.ArgumentParser()
@@ -42,12 +53,20 @@ def main():
             help="Column name of individual ID")
     ap.add_argument("--locality-colname", default="locality",
             help="Column name of locality ID")
+    ap.add_argument("--locality-description-colname", default="locality_description",
+            help="Column name of locality ID")
     ap.add_argument("--latitude-colname", default="latitude",
             help="Column name of latitude")
     ap.add_argument("--longitude-colname", default="longitude",
             help="Column name of latitude")
     ap.add_argument("--datetime-colname", default="datetime",
             help="Column name of datetime")
+    ap.add_argument("--extra-header", "--eh",
+            help="Extra content for header. Give text or path.")
+    ap.add_argument("--extra-footer", "--ef",
+            help="Extra content for end of HTML body. Give text or path.")
+    ap.add_argument("--extra-js", "--ej",
+            help="Extra content for end of javascript source. Give text or path.")
     ap.add_argument("--outdir", "-o", required=True,
             help="Output directory.")
     ap.add_argument("--srcimgdir", "-i", required=True,
@@ -59,14 +78,15 @@ def main():
 
     localities = {}
     outdir = Path(args.outdir)
+    outdir.mkdir(exist_ok=True, parents=True)
 
     with open(args.indiv_table) as fh:
-        indivs = DictReader(fh, dialect="excel-tab")
+        indivs = list(DictReader(fh, dialect="excel-tab"))
         for indiv in tqdm(indivs):
             indiv_out = {}
             name = indiv[args.individual_colname]
             outimgs = []
-            srcimgs = glob(f"{str(args.srcimgdir)/{name}/*.*")
+            srcimgs = glob(f"{str(args.srcimgdir)}/{name}/*.*")
             for i, srcimg in enumerate(map(Path, srcimgs)):
                 outimgprefix = Path(f"{outdir}/{name}/{i+1:03d}")
                 outimgprefix.parent.mkdir(exist_ok=True, parents=True)
@@ -80,18 +100,19 @@ def main():
                 "datetime": indiv[args.datetime_colname],
             }
             try:
-                localities[loc]["individuals"].append(indiv)
+                localities[loc]["individuals"].append(indiv_out)
             except KeyError:
                 localities[loc] = {
                     "locality_name": loc,
-                    "locality_description": indiv.get(args.locality_description, ""),
+                    "locality_description": indiv.get(args.locality_description_colname, ""),
                     "lat": indiv[args.latitude_colname],
                     "lon": indiv[args.longitude_colname],
                     "individuals": [indiv_out,],
                 }
-        for locality in localities:
-            srcimgs = glob(f"{str(args.srcimgdir)/{locality}/*.*")
-            for i, srcimg in tqdm(enumerate(map(Path, srcimgs))):
+        for locality in tqdm(localities):
+            srcimgs = glob(f"{str(args.srcimgdir)}/{locality}/*.*")
+            outimgs = []
+            for i, srcimg in enumerate(map(Path, srcimgs)):
                 outimgprefix = Path(f"{outdir}/{locality}/{i+1:03d}")
                 outimgprefix.parent.mkdir(exist_ok=True, parents=True)
                 images = write_images(outimgprefix, srcimg)
@@ -101,6 +122,28 @@ def main():
 
     with open(outdir / "localities.json", "w") as jf:
         print(json.dumps(localities, indent=2), file=jf)
+
+
+    extra_header = ""
+    if args.extra_header is not None:
+        extra_header = load_file_or_get_text(args.extra_header)
+    extra_footer = ""
+    if args.extra_footer is not None:
+        extra_footer = load_file_or_get_text(args.extra_footer)
+    extra_js = ""
+    if args.extra_js is not None:
+        extra_js = load_file_or_get_text(args.extra_js)
+
+    html = pkg_resources.read_text("accessiontk.webmap", 'index.html')
+    with open(outdir / "index.html", "w") as hf:
+        html = html.replace("__EXTRA_HEADER__", extra_header)
+        html = html.replace("__EXTRA_FOOTER__", extra_footer)
+        hf.write(html)
+
+    js = pkg_resources.read_text("accessiontk.webmap", 'mapapp.js')
+    with open(outdir / "mapapp.js", "w") as jf:
+        js = js.replace("__EXTRA_JS__", extra_js)
+        jf.write(js)
 
 if __name__ == "__main__":
     main()

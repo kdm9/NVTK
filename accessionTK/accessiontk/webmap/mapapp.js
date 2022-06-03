@@ -84,3 +84,5 @@ var vuem = createApp({
         });
     }
 }).mount("#mapapp");
+
+__EXTRA_JS__
