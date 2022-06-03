@@ -7,7 +7,6 @@ except ImportError:
     print("Failed to load HeifImagePlugin. *.HEIF won't be supported.", file=stderr)
 from tqdm import tqdm
 
-
 import argparse
 from pathlib import Path
 from csv import DictReader
@@ -41,11 +40,13 @@ def write_images(outprefix: str, srcpath: Path, widths: dict[str, int] = {"thumb
         resized.save(outfile)
     return outpaths
 
+
 def load_file_or_get_text(fileortext):
     if os.path.exists(fileortext):
         with open(fileortext) as fh:
             return fh.read()
     return fileortext
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -74,7 +75,6 @@ def main():
     ap.add_argument("--indiv-table", "-t", required=True,
             help="Table of individuals as .csv or .tsv (delimiter must match filename).")
     args = ap.parse_args()
-
 
     localities = {}
     outdir = Path(args.outdir)
@@ -123,7 +123,6 @@ def main():
     with open(outdir / "localities.json", "w") as jf:
         print(json.dumps(localities, indent=2), file=jf)
 
-
     extra_header = ""
     if args.extra_header is not None:
         extra_header = load_file_or_get_text(args.extra_header)
@@ -144,6 +143,7 @@ def main():
     with open(outdir / "mapapp.js", "w") as jf:
         js = js.replace("__EXTRA_JS__", extra_js)
         jf.write(js)
+
 
 if __name__ == "__main__":
     main()
