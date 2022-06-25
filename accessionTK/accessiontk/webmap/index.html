@@ -1,11 +1,18 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
     <!-- jquery -->
     <script src="https://code.jquery.com/jquery-3.6.0.js"
         crossorigin="anonymous"></script>
 
     <!-- vue -->
     <script src="https://unpkg.com/vue@3"></script>
+    <!-- Don't display uninitialised Vue.js content-->
+    <style>
+        [v-cloak] {
+          display: none;
+        }
+    </style>
 
     <!-- leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
@@ -34,7 +41,7 @@
     __EXTRA_HEADER__
 </head>
 <body>
-<div id="mapapp"  style="height: 100%; margin: 0; display: flex; flex-flow: column;">
+<div id="mapapp"  style="height: 100%; margin: 0; display: flex; flex-flow: column;" v-cloak>
     <div id="mapdiv" style="height: 95%; flex: 0 1 auto;"></div>
     <div id="buttons" style="flex: 0 1 30px;">
         <button type="button" id="btnSwitchBasemap" @click="onSwitchBasemap()">Switch Basemap</button>

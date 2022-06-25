@@ -1,9 +1,15 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
+    <!-- Don't display uninitialised Vue.js content-->
+    <style>
+        [v-cloak] {
+          display: none;
+        }
+    </style>
 </head>
 <body>
-<div id="labsheet">
+<div id="labsheet" v-cloak>
     <div id="div-form-setup">
         <label>I want to make labels...</label>
         <label for="usefmt"><input name="usefmt" id="usefmt" v-model="mode" value="format" type="radio"/>using an ID format/start/end.</label>
