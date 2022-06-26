@@ -8,6 +8,7 @@ module.exports = {
       "imagesort": './src/imagesort.js',
       "labelsheet": './src/labelsheet.js',
       "index": './src/index.js',
+      "extra": './src/extra.js',
   },
   output: {
     path: path.resolve(__dirname, 'static'),
