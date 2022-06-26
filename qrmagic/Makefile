@@ -7,3 +7,6 @@ js:
 devserve: js
 	python3 -m qrmagic.api
 
+.PHONY: docker
+docker: js
+	docker build --tag qrmagic .
