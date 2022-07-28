@@ -12,6 +12,7 @@ from reportlab.lib.units import mm, inch
 from reportlab.pdfbase.pdfmetrics import getFont, stringWidth
 import qrcode
 from tqdm import tqdm
+from PIL import Image
 
 import argparse
 import sys
@@ -30,10 +31,13 @@ class LabelSpec(object):
     hgap = 1*mm
     vmargin = 1.2*mm
     default_layout = "qr_left"
-    layouts = ["qr_left", "qr_left_texttop",  "qr_right", "multiline_text", "top_half", "qr_multiline"]
+    layouts = ["qr_left", "qr_left_texttop",  "qr_right", "multiline_text", "multiline_text_right", "top_half", "qr_multiline"]
 
-    def __init__(self, layout=None, qrsize=None, line_delim=","):
+    def __init__(self, layout=None, qrsize=None, line_delim=",", background=None, font_size=None):
         self.spec = Specification(**self.page)
+        self.background = background
+        if font_size is not None:
+            self.font_size = font_size
         if layout is None:
             layout = self.default_layout
         if layout not in self.layouts:
@@ -88,6 +92,10 @@ class LabelSpec(object):
         longest_line = max(lines, key=lambda s: len(s))
         n_lines = len(lines)
 
+        if self.background is not None:
+            bgim = Image.open(self.background)
+            imwidth = int(round(max(height / bgim.height  * bgim.width, width)))
+            label.add(shapes.Image(0, 0, imwidth, height, bgim))
         if self.layout in ("qr_left", "qr_left_texttop"):
             qleft = hm
             qbottom = vm + (ht - qs) / 2
@@ -170,12 +178,16 @@ class LabelSpec(object):
             qbottom = vm + (ht - qs) / 2
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
 
-        elif self.layout == "multiline_text":
-            tleft = hm
-            tavail = wd - tleft
+        elif self.layout.startswith("multiline_text"):
+            tavail = wd - hm
             fsz, tw, th = self.fit_font(longest_line, tavail, ht/n_lines)
             tbottom = vm + (ht - th*n_lines)/2
             for i, line in enumerate(reversed(lines)):
+                if self.layout == "multiline_text":
+                    tleft = hm
+                else:
+                    tw = stringWidth(line, self.font_name, fsz)
+                    tleft = wd - tw
                 label.add(shapes.String(tleft, tbottom + i * th, line, fontName=self.font_name, fontSize=fsz))
 
         elif self.layout == "qr_multiline":
@@ -345,7 +357,7 @@ class LCRY1700(LabelSpec):
     qrsize = 8*mm
     hmargin = 2.5*mm
     vmargin = 2*mm
-    layouts = ["qr_left", "qr_right", "multiline_text", "qr_multiline"]
+    layouts = ["qr_left", "qr_right", "multiline_text", "multiline_text_right", "qr_multiline"]
     page = {
             "sheet_width": 215.9, "sheet_height": 279.4,
             "columns": 5, "rows": 17,
@@ -406,7 +418,7 @@ for lt in label_types:
         }
 
 
-def generate_labels(labeltype, text_source, copies=1, border=False, line_delim=","):
+def generate_labels(labeltype, text_source, copies=1, border=False, line_delim=",", background=None):
     sheet = Sheet(labeltype.spec, labeltype.make_label, border=border)
     for obj in tqdm(text_source):
         sheet.add_label(obj, count=copies)
@@ -456,6 +468,10 @@ To actually do anything, you need one of the following:
             help="Last ID number (default 100)")
     ap.add_argument("--border", action="store_true",
             help="Show a border around each label.")
+    ap.add_argument("--background", default=None,
+            help="PNG image to set as each label's background. With this you can make any complicated designs you wish.")
+    ap.add_argument("--font-size", default=None, type=int,
+            help="Override font size to be X.")
     args = ap.parse_args()
 
     if args.demo is not None:
@@ -487,7 +503,9 @@ To actually do anything, you need one of the following:
     else:
         ids = [args.id_format.format(i) for i in range(args.id_start, args.id_end+1)]
 
-    sht = generate_labels(label_types[args.label_type](layout=args.layout, qrsize=args.qr_size), ids, copies=args.copies, border=args.border, line_delim=args.line_delim)
+    sht = generate_labels(label_types[args.label_type](layout=args.layout, qrsize=args.qr_size, background=args.background, font_size=args.font_size),
+            ids, copies=args.copies, border=args.border,
+            line_delim=args.line_delim)
     sht.save(args.output)
 
 
