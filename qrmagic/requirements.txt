@@ -6,3 +6,4 @@ exifread
 pylabels
 reportlab
 qrcode
+tqdm
