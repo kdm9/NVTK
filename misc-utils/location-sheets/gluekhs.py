@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 import argparse
 import sys
+from sys import stderr
 import io
 
 def one_page(id_str, template):
@@ -21,8 +22,11 @@ def one_page(id_str, template):
     qr.make(fit=True)
     img =  qr.make_image(fill_color="black", back_color="white")
     img.save(img_io, "PNG")
-    tpl.set_image('id_image', src=img_io.getvalue(), mimetype='image/png')
-
+    for img_key in tpl._rect_subs:
+        if img_key.startswith("id_image"):
+            tpl.set_image(img_key, src=img_io.getvalue(), mimetype='image/png')
+        else:
+            print("WARNING: skipping rect with template-id", img_key, "as it doesn't start with 'id_image'. Check your SVG", file=stderr)
     cairosvg.svg2pdf(bytestring=str(tpl), write_to=of)
     return of
 
