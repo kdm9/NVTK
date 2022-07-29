@@ -3,7 +3,7 @@ requires = ["flit"]
 build-backend = "flit.buildapi"
 
 [project]
-version = "0.1.0"
+version = "0.1.1"
 name = "accessiontk"
 description = "Tools to manage lists of accessions"
 dependencies = [
