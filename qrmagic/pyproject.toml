@@ -1,0 +1,39 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[project]
+version = "0.1.2"
+name = "qrmagic"
+description = "Tools to manage qrcoded labels and images during Natural Variaiton experiments"
+keywords=["qrcode", "fieldwork",]
+dependencies = [
+    "exifread",
+    "flask",
+    "heif-image-plugin",
+    "pillow",
+    "pylabels",
+    "pyzbar",
+    "qrcode",
+    "reportlab",
+    "tqdm",
+    "whitenoise",
+]
+readme = "README.md"
+authors = [
+    {name = "kdm9", email = "foss@kdmurray.id.au"},
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+[project.scripts]
+qrmagic-detect="qrmagic.scanimages:climain"
+qrmagic-labelprint="qrmagic.labelmaker:main"
