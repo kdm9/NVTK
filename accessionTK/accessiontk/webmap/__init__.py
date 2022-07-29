@@ -68,6 +68,8 @@ def main():
             help="Extra content for end of HTML body. Give text or path.")
     ap.add_argument("--extra-js", "--ej",
             help="Extra content for end of javascript source. Give text or path.")
+    ap.add_argument("--image-width", default=1920, type=int,
+            help="Width of 'large' images in output. Use 0 for original size")
     ap.add_argument("--outdir", "-o", required=True,
             help="Output directory.")
     ap.add_argument("--srcimgdir", "-i", required=True,
@@ -79,6 +81,7 @@ def main():
     localities = {}
     outdir = Path(args.outdir)
     outdir.mkdir(exist_ok=True, parents=True)
+    widths = {"thumb": 200, "large": args.image_width}
 
     with open(args.indiv_table) as fh:
         indivs = list(DictReader(fh, dialect="excel-tab"))
@@ -90,7 +93,7 @@ def main():
             for i, srcimg in enumerate(map(Path, srcimgs)):
                 outimgprefix = Path(f"{outdir}/{name}/{i+1:03d}")
                 outimgprefix.parent.mkdir(exist_ok=True, parents=True)
-                images = write_images(outimgprefix, srcimg)
+                images = write_images(outimgprefix, srcimg, widths)
                 images_pathfix = {k: str(Path(v).relative_to(outdir)) for k, v in images.items()}
                 outimgs.append(images_pathfix)
             loc = indiv[args.locality_colname]
