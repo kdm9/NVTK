@@ -38,12 +38,12 @@ server <- function(input, output) {
     })
     observeEvent(input$enter, {
       if (input$format == "from96") {
-        DF = hot_to_r(input$hot) %>%
+        DF = hot_to_r(input$intbl) %>%
           rownames_to_column()  %>%
           pivot_longer(-rowname) %>%
           transmute(well=sprintf("%s%02d", rowname, as.integer(name)), value)
       } else {
-        DF = hot_to_r(input$hot) %>%
+        DF = hot_to_r(input$intbl) %>%
           tidyr::extract(well, into=c("row", "col"), regex="([A-H])([0-9]+)")%>%
           pivot_wider(names_from=col, values_from=value) %>%
           column_to_rownames("row")
