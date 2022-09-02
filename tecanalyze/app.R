@@ -79,7 +79,7 @@ server <- function(input, output) {
       left_join(std_concs, by=c("row"="well")) %>%
       mutate(conc=as.numeric(conc), value=as.numeric(value))
     
-    m = lm(conc ~ value, data=std)
+    m = lm(conc ~ 0 + value, data=std)
     
     data2 = data %>%
       transmute(plate_name, well, rfu=value, conc=predict(m, data))
