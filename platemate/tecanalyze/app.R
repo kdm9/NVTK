@@ -24,9 +24,7 @@ ui <- fluidPage(
   uiOutput("plates"),
   fluidRow(wellPanel(
     actionButton(inputId="enter",label="Convert"),
-    rHandsontableOutput("outtbl"),
-  )),
-  fluidRow(wellPanel(
+    tableOutput("outtbl"),
     plotOutput("standardsPlot"),
     verbatimTextOutput("stdmdltxt")
   ))
@@ -88,8 +86,8 @@ server <- function(input, output) {
 
     
     data2 = data %>%
-      filter(!is.na(value)) %>%
       transmute(plate_name, well, rfu=value, conc=predict(m, data)) %>%
+      filter(!is.na(rfu)) %>%
       mutate(conc = ifelse(conc < 0, 0, conc))
     
     output$standardsPlot = renderPlot(
@@ -100,7 +98,7 @@ server <- function(input, output) {
         theme_classic()
     )
     output$stdmdltxt = renderPrint(summary(m))
-    output$outtbl=renderRHandsontable(rhandsontable(data2,readOnly=T, overflow = 'visible'))
+    output$outtbl=renderTable(data2)
   })
 }
 
