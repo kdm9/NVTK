@@ -9,7 +9,7 @@ ui <- fluidPage(
   
   fluidRow(wellPanel(
     numericInput("nplates", "How many plates:", 2),
-    #checkboxInput("intra", "Normalise only within plates?", FALSE),
+    checkboxInput("intercept", "Use an intercept in linear prediction model?", FALSE),
     splitLayout(
       numericInput("concA", "[Std A]:", 40, width="100px"),
       numericInput("concB", "[Std B]:", 32, width="100px"),
@@ -79,10 +79,18 @@ server <- function(input, output) {
       left_join(std_concs, by=c("row"="well")) %>%
       mutate(conc=as.numeric(conc), value=as.numeric(value))
     
-    m = lm(conc ~ 0 + value, data=std)
+    
+    if (input$intercept) {
+      m = lm(conc ~ value, data=std)
+    } else {
+      m = lm(conc ~ 0 + value, data=std)
+    }
+
     
     data2 = data %>%
-      transmute(plate_name, well, rfu=value, conc=predict(m, data))
+      filter(!is.na(value)) %>%
+      transmute(plate_name, well, rfu=value, conc=predict(m, data)) %>%
+      mutate(conc = ifelse(conc < 0, 0, conc))
     
     output$standardsPlot = renderPlot(
       ggplot(std, aes(conc, value)) +
@@ -91,8 +99,8 @@ server <- function(input, output) {
         labs(x="Conc (ng/uL)", y="RFU", title="Standard Curve") +
         theme_classic()
     )
-    output$stdmdltxt =renderPrint(summary(m))
-    output$outtbl=renderRHandsontable(rhandsontable(data2,readOnly=F))
+    output$stdmdltxt = renderPrint(summary(m))
+    output$outtbl=renderRHandsontable(rhandsontable(data2,readOnly=T, overflow = 'visible'))
   })
 }
 
