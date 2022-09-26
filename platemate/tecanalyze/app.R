@@ -8,7 +8,7 @@ ui <- fluidPage(
   titlePanel("TECANalyze -- quantifiy DNA with PicoGreen"),
   
   fluidRow(wellPanel(
-    numericInput("nplates", "How many plates:", 2),
+    numericInput("nplates", "How many plates:", 1),
     checkboxInput("intercept", "Use an intercept in linear prediction model?", FALSE),
     splitLayout(
       numericInput("concA", "[Std A]:", 40, width="100px"),
@@ -19,6 +19,7 @@ ui <- fluidPage(
       numericInput("concF", "[Std F]:",  8, width="100px"),
       numericInput("concG", "[Std G]:",  4, width="100px"),
       numericInput("concH", "[Std H]:",  0, width="100px"),
+      actionButton("reverse", "Reverse Standards"),
     )
   )),
   uiOutput("plates"),
@@ -30,7 +31,19 @@ ui <- fluidPage(
   ))
 )
 
-server <- function(input, output) {
+
+server <- function(input, output, session) {
+  observeEvent(input$reverse, {
+    for (i in 1:4) {
+      lhs = sprintf("conc%s", LETTERS[i])
+      rhs = sprintf("conc%s", LETTERS[8-i+1])
+      newR = input[[lhs]]
+      newL = input[[rhs]]
+      updateNumericInput(session, lhs, value=newL)
+      updateNumericInput(session, rhs, value=newR)
+    }
+  })
+
   observeEvent(input$nplates, {
     output$plates = renderUI(lapply(seq_len(input$nplates), function(i) {
           ti = textInput(sprintf("plate%d_name", i), "Plate Name", "")
