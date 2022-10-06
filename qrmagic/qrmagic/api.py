@@ -32,7 +32,6 @@ def scan_image():
 @app.route("/api/labels_pdf", methods=["POST"])
 def labels_pdf():
     jsondat = json.loads(request.data)
-    print(jsondat)
 
     if jsondat.get("ids_txt"):
         ids = [x.rstrip() for x in jsondat.get("ids_txt").split("\n")]
@@ -41,7 +40,7 @@ def labels_pdf():
 
     labelclass = label_types[jsondat.get("label_type", "L3666")]
 
-    sht = generate_labels(labelclass(layout=jsondat.get("layout"), line_delim=","), ids, copies=jsondat.get("copies", 1))
+    sht = generate_labels(labelclass(layout=jsondat.get("layout"), line_delim=","), ids, copies=jsondat.get("copies", 1), border=jsondat.get("border", False))
     pdf = BytesIO()
     sht.save(pdf)
     pdf.seek(0)

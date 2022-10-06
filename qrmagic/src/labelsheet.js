@@ -36,7 +36,8 @@ var vm = new Vue({
         async downloadPDF(e) {
             var base = {
                 label_type: this.$data.labelTypes[this.$data.labelType].name,
-                layout: this.$data.layout
+                layout: this.$data.layout,
+                border: this.$data.border
             };
             var req = {};
             if (this.$data.mode == "table") {
