@@ -8,6 +8,7 @@
 from sys import stderr
 from PIL import Image
 from PIL import Image, ImageOps, ImageEnhance, ImageDraw, ImageFont
+import piexif
 try:
     import HeifImagePlugin
 except ImportError:
@@ -78,7 +79,7 @@ class ImgData(object):
             self.parse_exif()
             del self.image
         except Exception as exc:
-            LOG.error("Couldn't read or process image '%s'", self.filename)
+            LOG.error("Couldn't read or process image '%s'", self.filename, exc_info=exc)
             LOG.info("ERROR: %s", str(exc))
 
     def scale_img(self,h):
@@ -99,36 +100,22 @@ class ImgData(object):
         return f"qr={self.qrcode} dt={self.datetime} lt={self.lat} ln={self.lon} at={self.alt} cm={self.camera}"
 
     def parse_exif(self):
-        exifdata = self.image.getexif()
-        decoded = dict((TAGS.get(key, key), value) for key, value in exifdata.items())
+        exif_dict = piexif.load(self.image.info["exif"])
+        exifdata = dict((TAGS.get(key, key), value) for key, value in exif_dict.items())
         try:
-            datetime = decoded['DateTimeOriginal']
+            datetime = exif_dict["Exif"][36867].decode("utf-8")
             self.datetime = dt.datetime.strptime(datetime, "%Y:%m:%d %H:%M:%S").isoformat()
         except KeyError:
             self.datetime = None
 
         try:
-            camera = f"{decoded['Make']} {decoded['Model']}"
+            camera = f"{exif_dict['0th'][0x010f].decode('ascii')} {exif_dict['0th'][0x0110].decode('ascii')}"
             camera = re.sub(r'[^\w\-_\.]', '', camera)
-        except KeyError:
+        except KeyError as exc:
             camera = None
 
-        try:
-            lat = degrees(decoded['GPSInfo'][2], decoded['GPSInfo'][1])
-            lon = degrees(decoded['GPSInfo'][4], decoded['GPSInfo'][3])
-        except KeyError:
-            lat = None
-            lon = None
-
-        try:
-            alt = rat2float(decoded['GPSInfo'][6])
-        except KeyError:
-            alt = None
-
         self.camera = camera
-        self.lat = lat
-        self.lon = lon
-        self.alt = alt
+        self.lat, self.lon, self.alt = parse_latlonalt(exif_dict["GPS"])
     
     def scan_codes(self):
         self.qrcode = None
@@ -175,11 +162,27 @@ def rat2float(rat):
         return float(rat)
 
 
-def degrees(dms, card):
-    dms = rat2float(dms[0]) + rat2float(dms[1])/60 + rat2float(dms[2])/3600
-    if card.upper() in ["S", "W"]:
-        dms *= -1
-    return dms
+def parse_latlonalt(G):
+    try:
+        lat = 0.0
+        for i, rat in enumerate(G[2]):
+            lat += rat2float(rat) / (60**i)
+        lat *= 1 if G[1] == b"N" else -1
+    except Exception as exc:
+        lat = None
+    try:
+        lon = 0.0
+        for i, rat in enumerate(G[4]):
+            lon += rat2float(rat) / (60**i)
+        lon *= 1 if G[3] == b"N" else -1
+    except Exception as exc:
+        lon = None
+    try:
+        alt = rat2float(G[6])
+        alt *= 1 if G[5] == b"0" else -1
+    except Exception as exc:
+        alt = None
+    return lat, lon, alt
 
 
 def climain():

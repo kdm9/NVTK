@@ -12,6 +12,7 @@ dependencies = [
     "flask",
     "heif-image-plugin",
     "pillow",
+    "piexif",
     "pylabels",
     "pyzbar",
     "qrcode",
