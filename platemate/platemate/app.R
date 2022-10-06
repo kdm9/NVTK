@@ -32,7 +32,7 @@ server <- function(input, output) {
         colnames(DF) = as.character(1:12)
       } else {
         DF = expand.grid(row=LETTERS[1:8], col=1:12) %>%
-          transmute(well=sprintf("%s%02d", row, col), value="")
+          transmute(plate="", well=sprintf("%s%02d", row, col), value="")
       }
       output$intbl=renderRHandsontable(rhandsontable(DF,readOnly=F))
     })
@@ -45,8 +45,7 @@ server <- function(input, output) {
       } else {
         DF = hot_to_r(input$intbl) %>%
           tidyr::extract(well, into=c("row", "col"), regex="([A-H])([0-9]+)")%>%
-          pivot_wider(names_from=col, values_from=value) %>%
-          column_to_rownames("row")
+          pivot_wider(names_from=col, values_from=value)
       }
       output$outtbl=renderRHandsontable(rhandsontable(DF,readOnly=F))
     })
