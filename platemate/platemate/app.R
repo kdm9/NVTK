@@ -19,7 +19,7 @@ ui <- fluidPage(
     )),
 
     fluidRow(wellPanel(
-      rHandsontableOutput("outtbl"),
+      tableOutput("outtbl"),
     ))
     
 )
@@ -47,7 +47,7 @@ server <- function(input, output) {
           tidyr::extract(well, into=c("row", "col"), regex="([A-H])([0-9]+)")%>%
           pivot_wider(names_from=col, values_from=value)
       }
-      output$outtbl=renderRHandsontable(rhandsontable(DF,readOnly=F))
+      output$outtbl=renderTable(DF, na="")
     })
 }
 
