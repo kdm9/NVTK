@@ -36,7 +36,7 @@ def main():
     ap = argparse.ArgumentParser()
     morehelp  = """
 """
-    ap = argparse.ArgumentParser(epilog=morehelp, formatter_class=argparse.RawDescriptionHelpFormatter, prog="labelmaker")
+    ap = argparse.ArgumentParser(epilog=morehelp, formatter_class=argparse.RawDescriptionHelpFormatter, prog="site-sheet-maker")
     ap.add_argument("--template", "-t", type=str, required=True,
             help="SVG template file. Must define id_image and id_text as custom template-id attributes on a rectangle and tspan respectively.")
     ap.add_argument("--output", "-o", type=argparse.FileType("wb"), metavar="FILE",

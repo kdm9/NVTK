@@ -1,0 +1,37 @@
+[project]
+version = "0.0.1"
+name = "nvtk-sitesheets"
+description = "Tool to create templated metadata sheets for fieldwork experiments"
+keywords=["qrcode", "fieldwork",]
+dependencies = [
+    "svglue",
+    "qrcode",
+    "PyPDF2",
+    "pillow",
+    "qrcode",
+    "tqdm",
+]
+readme = "README.md"
+authors = [
+    {name = "kdm9", email = "foss@kdmurray.id.au"},
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+[project.scripts]
+site-sheet-maker = "nvtk_ssm.ssm:main"
+doubleA5 = "nvtk_ssm.doubleA5:main"
+
+[tool.flit.module]
+name = "nvtk_ssm"
+
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
