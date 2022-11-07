@@ -33,7 +33,7 @@ class LabelSpec(object):
     default_layout = "qr_left"
     layouts = ["qr_left", "qr_left_texttop",  "qr_right", "multiline_text", "multiline_text_right", "top_half", "qr_multiline"]
 
-    def __init__(self, layout=None, qrsize=None, line_delim=",", background=None, font_size=None):
+    def __init__(self, layout=None, qrsize=None, line_delim=",", background=None, font_size=None, vmargin=None, hmargin=None):
         self.spec = Specification(**self.page)
         self.background = background
         if font_size is not None:
@@ -46,6 +46,10 @@ class LabelSpec(object):
         self.line_delim = line_delim
         if qrsize is not None:
             self.qrsize = qrsize * mm
+        if vmargin is not None:
+            self.vmargin = vmargin * mm
+        if hmargin is not None:
+            self.hmargin = hmargin * mm
 
     def qrimg(self, data):
         qr = qrcode.QRCode(
@@ -466,6 +470,10 @@ To actually do anything, you need one of the following:
             help="First ID number (default 1)")
     ap.add_argument("--id-end", type=int, default=100, metavar="N",
             help="Last ID number (default 100)")
+    ap.add_argument("--hmargin", type=float, metavar="N",
+            help="Horizontal margin (mm)")
+    ap.add_argument("--vmargin", type=float, metavar="N",
+            help="Vertical margin (mm)")
     ap.add_argument("--border", action="store_true",
             help="Show a border around each label.")
     ap.add_argument("--background", default=None,
@@ -503,7 +511,7 @@ To actually do anything, you need one of the following:
     else:
         ids = [args.id_format.format(i) for i in range(args.id_start, args.id_end+1)]
 
-    sht = generate_labels(label_types[args.label_type](layout=args.layout, qrsize=args.qr_size, background=args.background, font_size=args.font_size),
+    sht = generate_labels(label_types[args.label_type](layout=args.layout, qrsize=args.qr_size, background=args.background, font_size=args.font_size, vmargin=args.vmargin, hmargin=args.hmargin),
             ids, copies=args.copies, border=args.border,
             line_delim=args.line_delim)
     sht.save(args.output)

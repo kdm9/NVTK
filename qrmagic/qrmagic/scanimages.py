@@ -132,7 +132,7 @@ class ImgData(object):
 
                     codes = decode(img_scaled, [ZBarSymbol.QRCODE,])
                     if len(codes) > 0:
-                        self.qrcode = [d.data.decode('utf8').strip() for d in codes]
+                        self.qrcode = list(set([d.data.decode('utf8').strip() for d in codes]))
                         LOG.debug("got codes: %r", self.qrcode)
                         return
 
