@@ -3,7 +3,7 @@ const webpack = require('webpack');
 const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   entry: {
       "imagesort": './src/imagesort.js',
       "labelsheet": './src/labelsheet.js',
@@ -34,7 +34,8 @@ module.exports = {
       ],
     }),
     new webpack.DefinePlugin({
-      __VUE_PROD_DEVTOOLS__: true,
+      //__VUE_PROD_DEVTOOLS__: true,
+      __api_prefix__: JSON.stringify("/api/")
     })
   ],
 };

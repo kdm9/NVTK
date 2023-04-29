@@ -52,7 +52,7 @@ var vm = new Vue({
                 });
             }
 
-            fetch("/api/labels_pdf", {
+            fetch(`${__api_prefix__}labels_pdf`, {
                 method: 'POST',
                 body: JSON.stringify(req)
             }).then(function(resp) {

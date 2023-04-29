@@ -110,7 +110,7 @@ var vm = new Vue({
             for (let [i, file] of Object.entries(files)) {
                 var content = await readFile(file);
                 var apidata = {filename: file.name, content: content};
-                axios({method: 'post', url: '/api/scan-image', data: apidata})
+                axios({method: 'post', url: `${__api_prefix__}scan-image`, data: apidata})
                 .then(function(req) {
                     if (req.status > 299) console.log(req);
                     const d = req.data;
