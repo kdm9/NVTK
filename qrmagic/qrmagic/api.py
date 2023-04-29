@@ -7,7 +7,6 @@
 
 import json
 from flask import Flask, request, abort, jsonify, send_from_directory, current_app, redirect, send_file
-from whitenoise import WhiteNoise
 
 from .scanimages import ImgData, dataURI_to_file
 from .labelmaker import *
@@ -15,7 +14,10 @@ from io import BytesIO
 
 app = Flask("qrmagic")
 
-app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
+app.config.from_prefixed_env("QRMAGIC")
+if app.config.get("USE_WHITENOISE", False):
+    from whitenoise import WhiteNoise
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
 @app.route("/")
 def redir_index():
