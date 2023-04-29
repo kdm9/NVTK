@@ -3,13 +3,13 @@ requires = ["flit"]
 build-backend = "flit.buildapi"
 
 [project]
-version = "0.2.0"
+version = "0.2.1"
 name = "qrmagic"
 description = "Tools to manage qrcoded labels and images during Natural Variaiton experiments"
 keywords=["qrcode", "fieldwork",]
 dependencies = [
     "exifread",
-    "flask",
+    "flask>=2.1",
     "heif-image-plugin",
     "pillow",
     "piexif",

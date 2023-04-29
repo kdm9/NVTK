@@ -39,7 +39,7 @@
                 <th><input v-on:focus="idFromPreviousIfEmpty(index)" v-model="image.id"/></th>
                 <th>{{image.datestr}}</th>
                 <th>{{image.filename}}</th>
-		<th><span v-if="image.lat && image.lng "><a href="https://www.google.com/maps/search/?api=1&query={{image.lat}},{{image.lng}}">{{image.lat.toFixed(5)}},{{image.lng.toFixed(5)}}</a></span></th>
+		<th><span v-if="image.lat && image.lng "><a :href="`https://www.google.com/maps/search/?api=1&query=${image.lat},${image.lng}`">{{image.lat.toFixed(5)}},{{image.lng.toFixed(5)}}</a></span></th>
             </tr>
         </tbody>
     </table>
