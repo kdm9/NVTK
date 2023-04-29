@@ -174,7 +174,7 @@ def parse_latlonalt(G):
         lon = 0.0
         for i, rat in enumerate(G[4]):
             lon += rat2float(rat) / (60**i)
-        lon *= 1 if G[3] == b"N" else -1
+        lon *= 1 if G[3] == b"E" else -1
     except Exception as exc:
         lon = None
     try:

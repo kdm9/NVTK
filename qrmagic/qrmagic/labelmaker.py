@@ -102,7 +102,10 @@ class LabelSpec(object):
             label.add(shapes.Image(0, 0, imwidth, height, bgim))
         if self.layout in ("qr_left", "qr_left_texttop"):
             qleft = hm
-            qbottom = vm + (ht - qs) / 2
+            if self.layout == "qr_left":
+                qbottom = vm + (ht - qs) / 2
+            else:
+                qbottom = vm + (ht - qs)
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
             tleft = qleft + qs + hg
             tavail = wd - tleft
@@ -202,7 +205,7 @@ class LabelSpec(object):
             tleft = qleft + qs + hg
             tavail = wd - tleft
             fsz, tw, th = self.fit_font(longest_line, tavail, ht/n_lines)
-            tbottom = vm + (ht - th*n_lines)/2
+            tbottom = vm + (ht - th*n_lines)
             for i, line in enumerate(reversed(lines)):
                 label.add(shapes.String(tleft, tbottom + i * th, line, fontName=self.font_name, fontSize=fsz))
 
