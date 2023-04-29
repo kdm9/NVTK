@@ -5,6 +5,7 @@ description = "Tool to create templated metadata sheets for fieldwork experiment
 keywords=["qrcode", "fieldwork",]
 dependencies = [
     "svglue",
+    "cairosvg",
     "qrcode",
     "PyPDF2",
     "pillow",
