@@ -1,4 +1,0 @@
-git+https://github.com/mbr/svglue.git
-cairosvg
-qrcode
-pypdf2

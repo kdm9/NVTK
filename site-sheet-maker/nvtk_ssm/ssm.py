@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import svglue
+from . import svglue
 import cairosvg
 import qrcode
 from PyPDF2 import PdfFileMerger
