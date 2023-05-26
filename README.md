@@ -7,11 +7,19 @@ Tools for Natural Variation collections.
 
 # AccessionTK
 
-Tools to take a table of accession data and associated photos and generate beautiful HTML summaries.
+Tools to take a table of accession data and associated photos and generate
+beautiful HTML summaries.
 
-# qrmagic
+# QRmagic
 
-Tools to print QR codes and sort images the QR codes they contain (see <https://qrmagic.kdmurray.id.au/>).
+Tools to sort images the QR codes they contain (see
+<https://qrmagic.kdmurray.id.au/>), and also to print Avery-style sheet labels.
+
+# Site-sheet-maker
+
+A tool that can add a templated QR code to a form as SVG, for when simple
+labels aren't enough. We mostly use this for field collection forms, but it's
+totally generic.
 
 # License
 
