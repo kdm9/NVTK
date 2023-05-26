@@ -9,6 +9,10 @@ To create a template, you need to have two or more items in the SVG file:
 
 There are a few templates from our research under `./templates`, which should be somewhat self-explanatory. If you have any questions, reach out (in github issues or via Email).
 
+As an example, the below is an example of one sheet generated with the `templates/ctx_v2.svg` template.
+
+![](templates/test.jpg)
+
 
 In case the above link dies, this is how one adds the required attributes in inkscape.
 
