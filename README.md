@@ -21,6 +21,13 @@ A tool that can add a templated QR code to a form as SVG, for when simple
 labels aren't enough. We mostly use this for field collection forms, but it's
 totally generic.
 
+# Platemate
+
+Tools for working with samples in 96-well plates:
+
+- Convert between various plate layouts: <https://kdm9.shinyapps.io/platemate/>
+- Normalise DNA concentrations as measured with flurometeric dyes and a plate reader (e.g. PicoGreen): <https://kdm9.shinyapps.io/tecanalyze/>
+
 # License
 
 ## MPL2
