@@ -1,10 +1,13 @@
 [
-   {"name": "L7636",
+    {
+        "name": "L7636",
         "title": "L7636: Mid-sized rounded rectangular labels (45x22mm) in sheets of 4x12",
         "layouts": [
             "qr_left",
+            "qr_left_texttop",
             "qr_right",
             "multiline_text",
+            "multiline_text_right",
             "top_half",
             "qr_multiline"
         ],
@@ -25,8 +28,10 @@
         "title": "L3667: Mid-sized rectangular labels (48x17mm) in sheets of 4x16",
         "layouts": [
             "qr_left",
+            "qr_left_texttop",
             "qr_right",
             "multiline_text",
+            "multiline_text_right",
             "top_half",
             "qr_multiline"
         ],
@@ -47,8 +52,10 @@
         "title": "L3666: Mid-sized rectangular labels (38x22mm) in sheets of 5x13",
         "layouts": [
             "qr_left",
+            "qr_left_texttop",
             "qr_right",
             "multiline_text",
+            "multiline_text_right",
             "top_half",
             "qr_multiline"
         ],
@@ -167,7 +174,9 @@
         "name": "CryoLabel",
         "title": "CryoLabel: Cryo Labels for screw-cap eppies. White on left half, clear on right. 63mmx15mm in sheets of 3x18",
         "layouts": [
-            "qr_left"
+            "qr_left",
+            "qr_left_texttop",
+            "qr_multiline"
         ],
         "default_layout": "qr_left",
         "pagesize": [
@@ -182,12 +191,37 @@
         ]
     },
     {
+        "name": "PCRPlateCryoLabel",
+        "title": "PCRPlateCryoLabel: Thin PCR plate Cryolabes",
+        "layouts": [
+            "qr_left",
+            "qr_left_texttop",
+            "qr_right",
+            "multiline_text",
+            "multiline_text_right",
+            "top_half",
+            "qr_multiline"
+        ],
+        "default_layout": "qr_left",
+        "pagesize": [
+            215.9,
+            279.4
+        ],
+        "ncol": 4,
+        "nrow": 39,
+        "labelsize": [
+            38,
+            6.35
+        ]
+    },
+    {
         "name": "LCRY1700",
         "title": "LCRY1700: Cryo Labels on American paper",
         "layouts": [
             "qr_left",
             "qr_right",
             "multiline_text",
+            "multiline_text_right",
             "qr_multiline"
         ],
         "default_layout": "qr_left",

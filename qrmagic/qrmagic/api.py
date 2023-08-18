@@ -14,10 +14,12 @@ from io import BytesIO
 
 app = Flask("qrmagic")
 
-app.config.from_prefixed_env("QRMAGIC")
+app.config.from_prefixed_env("QRMAGIC_")
 if app.config.get("USE_WHITENOISE", False):
     from whitenoise import WhiteNoise
     app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
+from whitenoise import WhiteNoise
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
 @app.route("/")
 def redir_index():
@@ -34,9 +36,8 @@ def scan_image():
 @app.route("/api/labels_pdf", methods=["POST"])
 def labels_pdf():
     jsondat = json.loads(request.data)
-
     if jsondat.get("ids_txt"):
-        ids = [x.rstrip() for x in jsondat.get("ids_txt").split("\n")]
+        ids = [x.strip() for x in jsondat.get("ids_txt").rstrip().split("\n")]
     else:
         ids = [jsondat["id_format"].format(i) for i in range(int(jsondat.get("id_start", 1)), int(jsondat.get("id_end", 100))+1)]
 
@@ -46,7 +47,7 @@ def labels_pdf():
     pdf = BytesIO()
     sht.save(pdf)
     pdf.seek(0)
-    return send_file(pdf, mimetype="application/pdf", as_attachment=True, attachment_filename="labels.pdf", cache_timeout=0.1)
+    return send_file(pdf, mimetype="application/pdf", as_attachment=True, download_name="labels.pdf", max_age=0.1)
 
 
 if __name__ == "__main__":

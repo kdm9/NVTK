@@ -208,9 +208,7 @@ class LabelSpec(object):
             tbottom = vm + (ht - th*n_lines)
             for i, line in enumerate(reversed(lines)):
                 label.add(shapes.String(tleft, tbottom + i * th, line, fontName=self.font_name, fontSize=fsz))
-
-
-
+    
 class L7636(LabelSpec):
     description = "Mid-sized rounded rectangular labels (45x22mm) in sheets of 4x12"
     font_name = "Helvetica"
@@ -224,6 +222,24 @@ class L7636(LabelSpec):
             "corner_radius": 2,
             "left_margin": 9, "top_margin": 21.5,
             "row_gap": 0, "column_gap": 3,
+    }
+
+
+class PCRPlateCryoLabel(LabelSpec):
+    description = "Thin PCR plate Cryolabes"
+    font_name = "Helvetica"
+    font_size = 7
+    name = "PCRPlateCryoLabel"
+    qrsize = 4*mm
+    hmargin=1*mm
+    vmargin=0.6*mm
+    page = {
+            "sheet_width": 215.9, "sheet_height": 279.4,
+            "columns": 4, "rows": 39,
+            "label_width": 38, "label_height": 6.35,
+            "corner_radius": 1,
+            "left_margin": 11.8, "top_margin": 16,
+            "row_gap": 0, "column_gap": 12.7,
     }
 
 
@@ -249,12 +265,13 @@ class L3666(LabelSpec):
     font_size = 12
     name = "L3666"
     qrsize = 13*mm
+    hmargin = 4*mm
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 5, "rows": 13,
             "label_width": 38, "label_height": 21.2,
             "corner_radius": 0,
-            "left_margin": 10, "top_margin": 10.7,
+            "left_margin": 6, "top_margin": 6,
             "row_gap": 0, "column_gap": 0,
     }
 
@@ -406,6 +423,7 @@ label_types = {
     "Zweckform6252": Zweckform6252,
     "Zweckform3671": Zweckform3671,
     "CryoLabel": CryoLabel,
+    "PCRPlateCryoLabel": PCRPlateCryoLabel,
     "LCRY1700": LCRY1700,
 }
 __all__.extend(label_types.keys())

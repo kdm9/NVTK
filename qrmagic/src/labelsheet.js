@@ -14,6 +14,7 @@ var vm = new Vue({
     el: "#labsheet",
     data: {
         labelType: false,
+	labeltext: "",
         layout: false,
         labelTypes: LabelTypes,
         mode: "hidden",
@@ -40,7 +41,11 @@ var vm = new Vue({
                 border: this.$data.border
             };
             var req = {};
-            if (this.$data.mode == "table") {
+            if (this.$data.mode == "txt") {
+                req = Object.assign(base, {
+                    ids_txt: this.$data.labeltext
+                });
+	    } else if (this.$data.mode == "table") {
                 req = Object.assign(base, {
                     ids_txt: this.$data.cells.join("\n")
                 });
@@ -51,6 +56,7 @@ var vm = new Vue({
                     id_end: this.$data.id_end
                 });
             }
+	    console.log(req);
 
             fetch(`${__api_prefix__}labels_pdf`, {
                 method: 'POST',

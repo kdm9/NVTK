@@ -15,6 +15,7 @@
         <label>I want to make labels...</label>
         <label for="usefmt"><input name="usefmt" id="usefmt" v-model="mode" value="format" type="radio"/>using an ID format/start/end.</label>
         <label for="usetable"><input name="usetable" id="usetable" v-model="mode" value="table" type="radio"/>by directly entering IDs into a table.</label>
+        <label for="usetxt"><input name="usetxt" id="usetxt" v-model="mode" value="txt" type="radio"/>from a list of label texts.</label>
 
         <label for="label-type">Select label type</label>
         <select name="label-type" id="label-type" v-model="labelType" @change="labelTypeUpdate()">
@@ -40,6 +41,10 @@
         <input name="id_end" id="id_end" v-model="id_end" type="text">
 
         <button @click="downloadPDF" id="downloadPDFfmt">Download Label File</button>
+    </div>
+    <div id="div-txt" v-if="mode=='txt' && labelType !== false">
+        <label>Enter label texts, then</label> <button @click="downloadPDF" id="downloadPDFfmt">Download Label File</button>
+	<textarea v-model="labeltext" cols="40" rows="50"></textarea>
     </div>
     <div id="div-table" v-if="mode=='table' && labelType !== false">
         <label>Enter label texts, then</label> <button @click="downloadPDF" id="downloadPDFfmt">Download Label File</button>

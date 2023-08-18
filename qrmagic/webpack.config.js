@@ -35,7 +35,7 @@ module.exports = {
     }),
     new webpack.DefinePlugin({
       //__VUE_PROD_DEVTOOLS__: true,
-      __api_prefix__: JSON.stringify("/qrmagic/api/")
+      __api_prefix__: JSON.stringify("/api/")
     })
   ],
 };
