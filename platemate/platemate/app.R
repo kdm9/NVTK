@@ -26,15 +26,10 @@ ui <- fluidPage(
 ) 
 server <- function(input, output) {
     paramsChanged <- reactive({
-        list(input$format,input$nplates)
+        list(input$format, input$nplates)
     })
     observeEvent(paramsChanged(), {
       if (input$format == "from96") {
-        #DF=as.data.frame(matrix("", nrow=8*input$nplates, ncol=12))
-        #rownames(DF) = rep(LETTERS[1:8], times=input$nplates)
-        #colnames(DF) = as.character(1:12)
-        #DF$plate_name = rep(sprintf("plate_%i", 1:input$nplates), each=8)
-        
         output$plates = renderUI(lapply(seq_len(input$nplates), function(i) {
               ti = textInput(sprintf("plate%d_name", i), "Plate Name", "")
               ht = rHandsontableOutput(sprintf("plate%d_hot", i))
@@ -48,9 +43,11 @@ server <- function(input, output) {
           output[[sprintf("plate%d_hot", i)]] <- intbl
         })}
       } else {
-        DF = expand.grid(row=rep(LETTERS[1:8], times=input$nplates), col=1:12, plate_name=rep(sprintf("plate_%i", seq_len(input$nplates), each=8))) %>%
-          transmute(plate="", well=sprintf("%s%02d", row, col), value="")
-        output$plates=renderRHandsontable(rhandsontable(DF,readOnly=F))
+        DF = expand.grid(row=LETTERS[1:8], col=1:12,
+                         plate_name=sprintf("p%i", seq_len(input$nplates))) %>%
+          transmute(plate_name, well=sprintf("%s%02d", row, col), value="")
+        output$plates =renderUI(fluidRow(rHandsontableOutput("intbl")))
+        output$intbl = renderRHandsontable(rhandsontable(DF,readOnly=F))
       }
     })
     observeEvent(input$enter, {
@@ -71,16 +68,17 @@ server <- function(input, output) {
         }))
       } else {
         DF = hot_to_r(input$intbl) %>%
+          dplyr::mutate(plate_name=as.character(plate_name)) %>%
           tidyr::extract(well, into=c("row", "col"), regex="([A-H])([0-9]+)")%>%
-          pivot_wider(-plate_name, names_from=col, values_from=value)
+          pivot_wider(names_from=col, values_from=value)
       }
+      str(DF)
       output$outtbl=renderRHandsontable(rhandsontable(DF,readOnly=T))
       
       output$dlBtn <- downloadHandler(
         filename = function(){"plates.csv"}, 
         content = function(fname){ write_csv(DF, fname, na="") }
       )
-
     })
 }
 
