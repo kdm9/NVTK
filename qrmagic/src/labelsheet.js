@@ -6,7 +6,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import Vue from 'vue/dist/vue.js';
-import LabelTypes from './labeltypes.json';
 
 require("milligram/dist/milligram.min.css");
 
@@ -14,9 +13,9 @@ var vm = new Vue({
     el: "#labsheet",
     data: {
         labelType: false,
-	labeltext: "",
+        labeltext: "",
         layout: false,
-        labelTypes: LabelTypes,
+        labelTypes: {},
         mode: "hidden",
         border: false,
         id_format: "TEST{:04d}",
@@ -96,5 +95,18 @@ var vm = new Vue({
             document.body.removeChild(element);
             console.log(this.$data.cells);
         }
+    },
+    created: function() {
+       var v=this;
+       fetch(`${__api_prefix__}labeltypes.json`)
+	.then(function(response) {
+	  return response.json()
+	})
+	.then(function (dat) {
+            v.$data.labelTypes = dat;
+        })
+        .catch(function (err) {
+            console.log(err);
+        });
     }
 });

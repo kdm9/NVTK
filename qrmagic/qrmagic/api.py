@@ -9,7 +9,7 @@ import json
 from flask import Flask, request, abort, jsonify, send_from_directory, current_app, redirect, send_file
 
 from .scanimages import ImgData, dataURI_to_file
-from .labelmaker import *
+from . import labelmaker
 from io import BytesIO
 
 app = Flask("qrmagic")
@@ -33,6 +33,11 @@ def scan_image():
     return jsonify(img.as_response_json()), 201
 
 
+@app.route("/api/labeltypes.json", methods=["GET"])
+def labeltypes():
+    return jsonify(labelmaker.labeltype_json), 201
+
+
 @app.route("/api/labels_pdf", methods=["POST"])
 def labels_pdf():
     jsondat = json.loads(request.data)
@@ -41,9 +46,9 @@ def labels_pdf():
     else:
         ids = [jsondat["id_format"].format(i) for i in range(int(jsondat.get("id_start", 1)), int(jsondat.get("id_end", 100))+1)]
 
-    labelclass = label_types[jsondat.get("label_type", "L3666")]
+    labelclass = labelmaker.label_types[jsondat.get("label_type", "L3666")]
 
-    sht = generate_labels(labelclass(layout=jsondat.get("layout"), line_delim=","), ids, copies=jsondat.get("copies", 1), border=jsondat.get("border", False))
+    sht = labelmaker.generate_labels(labelclass(layout=jsondat.get("layout"), line_delim=","), ids, copies=jsondat.get("copies", 1), border=jsondat.get("border", False))
     pdf = BytesIO()
     sht.save(pdf)
     pdf.seek(0)
