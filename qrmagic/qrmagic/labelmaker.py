@@ -25,7 +25,6 @@ __all__ = [
         "main",
 ]
 
-
 class LabelSpec(object):
     hmargin = 1.5*mm
     hgap = 1*mm
@@ -75,7 +74,7 @@ class LabelSpec(object):
                 #print(font_size, "too high")
                 continue
             return font_size, twidth, textheight
-        print("WARNING: couldn't fit", str(obj), "into", f"{tavail / mm:0.1f}", "mm space availabe")
+        print("WARNING: couldn't fit", str(text), "into", f"{available_width / mm:0.1f}", "mm space availabe")
 
     def make_label(self, label, width, height, obj, *args, **kwargs):
         text = str(obj)
@@ -392,6 +391,26 @@ class LCRY1700(LabelSpec):
     }
 
 
+class FelgaPET65(LabelSpec):
+    description = "38x21mm labels, sheets of 65, PET/plastic waterproof labels from felga.de"
+    font_name = "Helvetica"
+    font_size = 8
+    name = "FelgaPET65"
+    qrsize = 15*mm
+    hmargin = 2*mm
+    vmargin = 2*mm
+    layouts = ["qr_top", "qr_right_verticaltext", "qr_left_verticaltext", "qr_left", "qr_right", "qr_left_texttop", "qr_right_texttop"]
+    default_layout = "qr_right_texttop"
+    page = {
+            "sheet_width": 210, "sheet_height": 297,
+            "columns": 5, "rows": 13,
+            "label_width": 38, "label_height": 21,
+            "corner_radius": 1.5,
+            "left_margin": 5, "column_gap": 2.5, 
+            "top_margin": 11, "row_gap": 0,
+            }
+
+
 class Zweckform3671(LabelSpec):
     description = "64x45mm labels, sheets of 18."
     font_name = "Helvetica"
@@ -425,6 +444,7 @@ label_types = {
     "CryoLabel": CryoLabel,
     "PCRPlateCryoLabel": PCRPlateCryoLabel,
     "LCRY1700": LCRY1700,
+    "FelgaPET65": FelgaPET65,
 }
 __all__.extend(label_types.keys())
 
@@ -505,7 +525,8 @@ To actually do anything, you need one of the following:
 
     if args.demo is not None:
         for name, labelclass in label_types.items():
-            sht = generate_labels(labelclass(), [f"{name}_{i}" for i in range(10)], copies=4)
+            print(name)
+            sht = generate_labels(labelclass(), [f"{name}_{i}" for i in range(10)], copies=4, border=True)
             sht.save(f"{args.demo}/{name}.pdf")
         sys.exit(0)
     if args.list_label_types:
