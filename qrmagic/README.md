@@ -2,6 +2,9 @@
 
 Some magical semi-automated tools to better handle sample tracking during fieldwork.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10049943.svg)](https://doi.org/10.5281/zenodo.10049943)
+
+
 To install:
 
 ```
