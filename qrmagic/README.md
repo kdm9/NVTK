@@ -44,7 +44,7 @@ optional arguments:
 
 To see what label types are available, do:
 
-```bash
+```
 $ python3 -m qrmagic.labelmaker --list-label-types
 L7636:  Mid-sized rounded rectangular labels (45x22mm) in sheets of 4x12
 L3667:  Mid-sized rectangular labels (48x17mm) in sheets of 4x16
