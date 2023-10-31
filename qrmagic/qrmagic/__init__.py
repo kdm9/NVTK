@@ -6,5 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from . import _version
-__version__ = _version.get_versions()['version']
+try:
+    from . import _version
+    __version__ = _version.get_versions()['version']
+except ImportError:
+    pass

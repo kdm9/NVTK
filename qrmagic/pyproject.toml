@@ -1,9 +1,16 @@
 [build-system]
-requires = ["flit"]
-build-backend = "flit.buildapi"
+requires = [
+    "setuptools>=60",
+    "setuptools-scm>=8.0"]
+
+[tool.setuptools_scm]
+version_file = "qrmagic/_version.py"
+root = ".."
+tag_regex = "^qrmagic-(?P<version>[vV]?\\d+(?:\\.\\d+){0,2}[^\\+]*)(?:\\+.*)?$"
+git_describe_command = "git describe --dirty --tags --long --match 'qrmagic*'"
 
 [project]
-version = "0.2.1"
+dynamic = ["version"]
 name = "qrmagic"
 description = "Tools to manage qrcoded labels and images during Natural Variaiton experiments"
 keywords=["qrcode", "fieldwork",]
