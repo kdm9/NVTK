@@ -75,6 +75,7 @@ class LabelSpec(object):
                 continue
             return font_size, twidth, textheight
         print("WARNING: couldn't fit", str(text), "into", f"{available_width / mm:0.1f}", "mm space availabe")
+        return font_size, twidth, textheight
 
     def make_label(self, label, width, height, obj, *args, **kwargs):
         text = str(obj)

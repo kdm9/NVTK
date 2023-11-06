@@ -11,6 +11,7 @@ from flask import Flask, request, abort, jsonify, send_from_directory, current_a
 from .scanimages import ImgData, dataURI_to_file
 from . import labelmaker
 from io import BytesIO
+import re
 
 app = Flask("qrmagic")
 
@@ -42,7 +43,7 @@ def labeltypes():
 def labels_pdf():
     jsondat = json.loads(request.data)
     if jsondat.get("ids_txt"):
-        ids = [x.strip() for x in jsondat.get("ids_txt").rstrip().split("\n")]
+        ids = [x.strip() for x in re.split(r"[\t\n]+", jsondat.get("ids_txt").rstrip())]
     else:
         ids = [jsondat["id_format"].format(i) for i in range(int(jsondat.get("id_start", 1)), int(jsondat.get("id_end", 100))+1)]
 
