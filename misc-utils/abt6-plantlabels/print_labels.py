@@ -24,8 +24,6 @@ SETTING = 0             # 0-based
 # 5. Endpoint
 ENDPOINT = 0            # 0-based
 
-
-
 def usb_write(command, device):
 
     # 1. Device
@@ -147,16 +145,33 @@ def create_print_command(ld, user=getpass.getuser(), layout=1, max_field_text_le
                     ld['Replicate'] + \
                     '"\nPRINT 1,1\n'
     elif layout == 5:
-        print_cmd = 'SIZE 100 mm,17 mm\nGAP 1 mm,1 mm\nDIRECTION 1\nCLS\n' + \
-                    'QRCODE 50,3,H,4,A,0,M1,"' + ld["id"] + '"\n' + \
-                    'TEXT 160,10,"3",0,1,1,"' + ld['id'] + '"\n' + \
-                    'TEXT 160,48,"3",0,1,1,"A:' + ld['accession'] + '"\n' + \
-                    'TEXT 320,48,"3",0,1,1,"P:' + ld['within_tray_pos'] + '"\n' + \
-                    'TEXT 300,10,"3",0,1,1,"H:' + ld['isolate'] + '"\n' + \
-                    'TEXT 460,48,"3",0,1,1,"T:' + ld['timepoint'] + '"\n' + \
-                    'TEXT 550,48,"3",0,1,1,"R:' + ld['rep'] + '"\n' + \
-                    'TEXT 480,10,"3",0,1,1,"' + ld['date'] + '"\n' + \
-                    'PRINT 1,1\n'
+        print_cmd = f"""
+        SIZE 100 mm,17 mm
+        GAP 1 mm,1 mm
+        DIRECTION 1
+        CLS
+        QRCODE 50,3,H,4,A,0,M1,"{ld['id']}"
+        TEXT 160,10,"3",0,1,1,"{ld['id']}"
+        TEXT 160,48,"3",0,1,1,"A:{ld['accession']}"
+        TEXT 320,48,"3",0,1,1,"P:{ld['within_tray_pos']}"
+        TEXT 300,10,"3",0,1,1,"H:{ld['isolate']}"
+        TEXT 460,48,"3",0,1,1,"T:{ld['timepoint']}"
+        TEXT 550,48,"3",0,1,1,"R:{ld['rep']}"
+        TEXT 480,10,"3",0,1,1,"{ld['date']}"
+        PRINT 1,1
+        """
+    elif layout == 6:
+        print_cmd = f"""
+        SIZE 100 mm,17 mm
+        GAP 1 mm,1 mm
+        DIRECTION 1
+        CLS
+        TEXT 60,10,"3",0,1,1,"{ld['accession']} pot:{ld['pot']}"
+        TEXT 60,48,"3",0,1,1,"LUISA TEASDALE"
+        TEXT 350,48,"3",0,1,1,"PL:{ld['date']}"
+        TEXT 350,10,"3",0,1,1,"DL20 Bulk Seeds"
+        PRINT 1,1
+        """
     return print_cmd
 
 
