@@ -12,8 +12,8 @@ ui <- fluidPage(
     fluidRow(wellPanel(
       numericInput("nplates", "How many plates:", 1),
       radioButtons("format", "From/to:",
-                   c("From 96 well to long format" = "from96",
-                     "From long format to 96 wells" = "fromlong")),
+                   c("From 96 well grid format" = "from96",
+                     "From \"tidy\"/long format" = "fromlong")),
       checkboxInput("revcom_i5", "Reverse-complement i5 sequence (YES: NextSeq pre 2020-ish, HiSeq X, HiSeq 3000/4000 and NovaSeq 6000 v1.5+; NO: NextSeq after 2020-ish, Miseq, Hiseq2000/2500):", T),
       checkboxInput("revcom_i7", "Reverse-complement i7 sequence (YES for all common applications):", T),
       p("TLDR: modern machines: RC both, older kits: i7 RC, i5 FWD. To explain the revcomp options: the indices included in this tool match exactly the oligos we ordered. Because of how the sequencing happens, Illumina acutally sequences at least the i7 index reverse-complemented with respect to the oligos. In modern sequencing kits, both i5 and i7 will be RC, but with older kits, i5 is 'normal' but i7 is RC. Confusingly, the illumina documentation refers i5F/i7R as 'forward strand', but says you need to revcomp it compared to the typical usage (which is true, sorta). See", a("this", href='https://teichlab.github.io/scg_lib_structs/methods_html/Illumina.html'))
