@@ -195,6 +195,8 @@ def climain():
             help="Number of CPUs to use for image decoding/scanning")
     ap.add_argument("-o", "--output", type=argparse.FileType("w"), required=True,
             help="ND-JSON output file.")
+    ap.add_argument("-z", "--img-height", type=int, default=720,
+            help="Preview image size (height, aspect ratio is preserved).")
     ap.add_argument("images", nargs="+", help="List of images")
     args = ap.parse_args()
 
@@ -204,6 +206,8 @@ def climain():
         map_ = pool.imap
     else:
         map_ = map
+
+    ImgData.MIDSIZE_HEIGHT = args.img_height
 
     for img in tqdm(map_(ImgData, args.images), unit="images", total=len(args.images)):
         print(json.dumps(img.as_response_json()), file=args.output)

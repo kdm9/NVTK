@@ -4,3 +4,4 @@
 *.egg-info/
 /build
 /dist
+/qrmagic/_version.py
