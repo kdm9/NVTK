@@ -84,7 +84,7 @@ server <- function(input, output) {
                               plate_name=input[[sprintf("plate%d_name", i)]],
                               i7=input[[sprintf("plate%d_i7", i)]],
                               i5=input[[sprintf("plate%d_i5", i)]],
-                              well,
+                              well = sub("^([A-H])([0-9])$", "\\10\\2", well),
                               sample_id
                               ) %>%
                     arrange(substr(well, 2, 4), well) %>%
@@ -93,6 +93,7 @@ server <- function(input, output) {
                return(pl)
             })}))
         }
+	print(DF)
         if (input$revcom_i5) {
             DF$index.i5 = sapply(DF$index.i5, function(s) {as.character(Biostrings::reverseComplement(Biostrings::DNAString(s)))})
         }
