@@ -16,7 +16,9 @@ ui <- fluidPage(
                      "From \"tidy\"/long format" = "fromlong")),
       checkboxInput("revcom_i5", "Reverse-complement i5 sequence (YES: NextSeq pre 2020-ish, HiSeq X, HiSeq 3000/4000 and NovaSeq 6000 v1.5+; NO: NextSeq after 2020-ish, Miseq, Hiseq2000/2500):", T),
       checkboxInput("revcom_i7", "Reverse-complement i7 sequence (YES for all common applications):", T),
-      p("TLDR: modern machines: RC both, older kits: i7 RC, i5 FWD. To explain the revcomp options: the indices included in this tool match exactly the oligos we ordered. Because of how the sequencing happens, Illumina acutally sequences at least the i7 index reverse-complemented with respect to the oligos. In modern sequencing kits, both i5 and i7 will be RC, but with older kits, i5 is 'normal' but i7 is RC. Confusingly, the illumina documentation refers i5F/i7R as 'forward strand', but says you need to revcomp it compared to the typical usage (which is true, sorta). See", a("this", href='https://teichlab.github.io/scg_lib_structs/methods_html/Illumina.html'))
+      p("TLDR: modern machines: RC both, older kits: i7 RC, i5 FWD. To explain the revcomp options: the indices included in this tool match exactly the oligos we ordered. Because of how the sequencing happens, Illumina acutally sequences at least the i7 index reverse-complemented with respect to the oligos. In modern sequencing kits, both i5 and i7 will be RC, but with older kits, i5 is 'normal' but i7 is RC. Confusingly, the illumina documentation refers i5F/i7R as 'forward strand', but says you need to revcomp it compared to the typical usage (which is true, sorta). See", a("this", href='https://teichlab.github.io/scg_lib_structs/methods_html/Illumina.html')),
+      p("For MPI Tü folks: The NextSeq at the Genome Centre is new enough to want the only the i7 reverse complimented. Therefore: i5 = NO, i7 = YES."),
+      checkboxInput("blank2well", "Replace empty wells with plate name & well", T),
     )),
 
     fluidRow(wellPanel(
@@ -37,10 +39,11 @@ server <- function(input, output) {
         if (!is.na(input$nplates) & is.numeric(input$nplates)) {
             output$plates = renderUI(lapply(seq_len(input$nplates), function(i) {
                     ti = textInput(sprintf("plate%d_name", i), "Plate Name", "")
+                    sf = textInput(sprintf("plate%d_suffix", i), "Sample Name Suffix", "")
                     i7 = selectInput(sprintf("plate%d_i7", i), "i7", unique(i7s$i7))
                     i5 = selectInput(sprintf("plate%d_i5", i), "i5", unique(i5s$i5))
                     ht = rHandsontableOutput(sprintf("plate%d_hot", i))
-                    fluidRow(wellPanel(ti, i7, i5, ht))
+                    fluidRow(wellPanel(ti, sf, i7, i5, ht))
             }))
         if (input$format == "from96") {        
             for(i in seq_len(input$nplates)) { local({
@@ -70,7 +73,9 @@ server <- function(input, output) {
                               i7=input[[sprintf("plate%d_i7", i)]],
                               i5=input[[sprintf("plate%d_i5", i)]],
                               well=sprintf("%s%02d", rowname, as.integer(name)),
-                              sample_id=value
+                              sample_id=ifelse(input$blank2well & is.na(value) | value == "",
+                                               sprintf("blank_%s_%s", plate_name, well),
+                                               paste0(value, input[[sprintf("plate%d_suffix", i)]])),
                               ) %>%
                     arrange(substr(well, 2, 4), well) %>%
                     left_join(i7s) %>%
