@@ -73,7 +73,7 @@ server <- function(input, output) {
                               i7=input[[sprintf("plate%d_i7", i)]],
                               i5=input[[sprintf("plate%d_i5", i)]],
                               well=sprintf("%s%02d", rowname, as.integer(name)),
-                              sample_id=ifelse(input$blank2well & is.na(value) | value == "",
+                              sample_id=ifelse(input$blank2well & (is.na(value) | value == "" | value == "blank"),
                                                sprintf("blank_%s_%s", plate_name, well),
                                                paste0(value, input[[sprintf("plate%d_suffix", i)]])),
                               ) %>%
