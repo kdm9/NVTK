@@ -395,11 +395,11 @@ class LCRY1700(LabelSpec):
 class FelgaPET65(LabelSpec):
     description = "38x21mm labels, sheets of 65, PET/plastic waterproof labels from felga.de"
     font_name = "Helvetica"
-    font_size = 12
+    font_size = 10
     name = "FelgaPET65"
-    qrsize = 15*mm
-    hmargin = 2*mm
-    vmargin = 2*mm
+    qrsize = 12*mm
+    hmargin = 3*mm
+    vmargin = 3*mm
     layouts = ["qr_top", "qr_right_verticaltext", "qr_left_verticaltext", "qr_left", "qr_right", "qr_left_texttop", "qr_right_texttop"]
     default_layout = "qr_right_texttop"
     page = {
