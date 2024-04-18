@@ -83,8 +83,9 @@ def main():
     outdir.mkdir(exist_ok=True, parents=True)
     widths = {"thumb": 200, "large": args.image_width}
 
+    dialect = "excel" if str(args.indiv_table).endswith(".csv") else "excel-tab"
     with open(args.indiv_table) as fh:
-        indivs = list(DictReader(fh, dialect="excel-tab"))
+        indivs = list(DictReader(fh, dialect=dialect))
         for indiv in tqdm(indivs):
             indiv_out = {}
             name = indiv[args.individual_colname]
