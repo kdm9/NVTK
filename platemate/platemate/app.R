@@ -45,7 +45,7 @@ server <- function(input, output) {
       } else {
         DF = expand.grid(row=LETTERS[1:8], col=1:12,
                          plate_name=sprintf("p%i", seq_len(input$nplates))) %>%
-          transmute(plate_name, well=sprintf("%s%02d", row, col), value="")
+          transmute(plate_name=as.character(plate_name), well=sprintf("%s%02d", row, col), value="")
         output$plates =renderUI(fluidRow(rHandsontableOutput("intbl")))
         output$intbl = renderRHandsontable(rhandsontable(DF,readOnly=F))
       }

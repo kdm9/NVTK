@@ -2,8 +2,10 @@ library(shiny)
 library(rhandsontable)
 library(tidyverse)
 library(Biostrings)
-i7s = read_csv("i7s.csv")
-i5s = read_csv("i5s.csv")
+i7s = read_tsv("i7_sets.tsv") %>%
+    select(i7=group, col=well, index.i7=seq, gnum.i7=name)
+i5s = read_tsv("i5_sets.tsv") %>%
+    select(i5=group, row=well, index.i5=seq, gnum.i5=name)
 
 ui <- fluidPage(
 
@@ -75,11 +77,14 @@ server <- function(input, output) {
                               well=sprintf("%s%02d", rowname, as.integer(name)),
                               sample_id=ifelse(input$blank2well & (is.na(value) | value == "" | value == "blank"),
                                                sprintf("blank_%s_%s", plate_name, well),
-                                               paste0(value, input[[sprintf("plate%d_suffix", i)]])),
+                                               value),
+                              sample_id = paste0(sample_id, input[[sprintf("plate%d_suffix", i)]]),
+                              row=substr(well, 1, 1),
+                              col=substr(well, 2, 3)
                               ) %>%
-                    arrange(substr(well, 2, 4), well) %>%
-                    left_join(i7s) %>%
-                    left_join(i5s)
+                    arrange(col, row) %>%
+                    left_join(i7s, by=join_by(i7, col)) %>%
+                    left_join(i5s, by=join_by(i5, row))
                return(pl)
             })}))
         } else {
@@ -90,11 +95,13 @@ server <- function(input, output) {
                               i7=input[[sprintf("plate%d_i7", i)]],
                               i5=input[[sprintf("plate%d_i5", i)]],
                               well = sub("^([A-H])([0-9])$", "\\10\\2", well),
-                              sample_id
+                              row=substr(well, 1, 1),
+                              col=substr(well, 2, 3),
+                              sample_id = paste0(sample_id, input[[sprintf("plate%d_suffix", i)]])
                               ) %>%
-                    arrange(substr(well, 2, 4), well) %>%
-                    left_join(i7s) %>%
-                    left_join(i5s)
+                    arrange(col, row) %>%
+                    left_join(i7s, by=join_by(i7, col)) %>%
+                    left_join(i5s, by=join_by(i5, row))
                return(pl)
             })}))
         }
