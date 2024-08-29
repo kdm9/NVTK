@@ -30,7 +30,7 @@ Tools for working with samples in 96-well plates:
 
 - Convert between various plate layouts: <https://kdm9.shinyapps.io/platemate/>
 - Normalise DNA concentrations as measured with flurometeric dyes and a plate reader (e.g. PicoGreen): <https://kdm9.shinyapps.io/tecanalyze/>
-- Create plate layout samplesheets <https://kdm9.shinyapps.io/nexteramate>
+- Create plate layout samplesheets for sequencing, with our extended nextera adapter set <https://kdm9.shinyapps.io/nexteramate>
 
 # License
 
