@@ -8,7 +8,7 @@ ui <- fluidPage(
   titlePanel("TECANalyze -- quantifiy DNA with PicoGreen"),
   
   fluidRow(wellPanel(
-    numericInput("nplates", "How many plates:", 1),
+    numericInput("nplates", "How many plates:", 1, min=1, max=12),
     checkboxInput("intercept", "Use an intercept in linear prediction model?", TRUE),
     checkboxInput("includestds", "Include standards in output table?", FALSE),
     checkboxInput("stdperplate", "Use standards only from each plate to quantify each plate", TRUE),
@@ -126,8 +126,8 @@ server <- function(input, output, session) {
         filter(is.na(status) | status == "")
     stds = data2 %>%
         filter(status=="STD") %>%
-        group_by(plate_name, status) %>%
-        summarise(col=unique(col))
+        left_join(stdconc, by="row", suffix=c("", "_std")) %>%
+        glimpse()
     colstds = data2 %>%
         filter(status %in% data2$plate_name)
 
@@ -161,6 +161,13 @@ server <- function(input, output, session) {
       content = function(fname){ write_csv(data3, fname, na="") }
     )
     output$outtbl=renderTable(data3)
+    output$standardsPlot <- renderPlot({
+        ggplot(stds, aes(conc_std, value)) + geom_point(aes(colour=plate_name)) + scale_colour_brewer() + theme_bw() +
+            labs(colour="Plate", x="Std. Conc.", y="Fluroescence Value") +
+            theme(
+                  legend.position="bottom",
+            )
+    }, res = 200, width=1200, height=900)
   })
 }
 
