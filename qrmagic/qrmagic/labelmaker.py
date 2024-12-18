@@ -16,6 +16,7 @@ from PIL import Image
 
 import argparse
 import sys
+import textwrap
 import json
 
 
@@ -30,7 +31,7 @@ class LabelSpec(object):
     hgap = 1*mm
     vmargin = 1.2*mm
     default_layout = "qr_left"
-    layouts = ["qr_left", "qr_left_texttop",  "qr_right", "multiline_text", "multiline_text_right", "top_half", "qr_multiline"]
+    layouts = ["qr_left", "qr_left_texttop",  "qr_right", "multiline_text", "multiline_text_right", "top_half", "qr_multiline", "topleft_topright_bottomwrap"]
 
     def __init__(self, layout=None, qrsize=None, line_delim=",", background=None, font_size=None, vmargin=None, hmargin=None):
         self.spec = Specification(**self.page)
@@ -64,18 +65,15 @@ class LabelSpec(object):
     def fit_font(self, text, available_width, available_height):
         for font_size in range(self.font_size, 2, -1):
             twidth = stringWidth(text, self.font_name, font_size)
-            if twidth > available_width:
-                #print(font_size, "too wide")
-                continue
             fnt = getFont(self.font_name).face
             textheight = (((fnt.ascent*font_size) -
                            (fnt.descent*font_size)) / 1000)
-            if textheight > available_height:
+            if twidth > available_width or textheight > available_height:
                 #print(font_size, "too high")
                 continue
-            return font_size, twidth, textheight
+            return font_size, twidth, textheight, True
         print("WARNING: couldn't fit", str(text), "into", f"{available_width / mm:0.1f}", "mm space availabe")
-        return font_size, twidth, textheight
+        return font_size, twidth, textheight, False
 
     def make_label(self, label, width, height, obj, *args, **kwargs):
         text = str(obj)
@@ -92,7 +90,7 @@ class LabelSpec(object):
             qs = ht
         assert ht <= height
 
-        lines = list(text.rstrip().rstrip(self.line_delim).split(self.line_delim))
+        lines = list(text.rstrip().split(self.line_delim))
         longest_line = max(lines, key=lambda s: len(s))
         n_lines = len(lines)
 
@@ -109,7 +107,7 @@ class LabelSpec(object):
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
             tleft = qleft + qs + hg
             tavail = wd - tleft
-            fsz, tw, th = self.fit_font(text, tavail, ht)
+            fsz, tw, th, fitted = self.fit_font(text, tavail, ht)
             if self.layout == "qr_left":
                 tbottom = vm + (ht - th)/2
             else:
@@ -122,7 +120,7 @@ class LabelSpec(object):
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
             tright = qleft - hg
             tavail = tright - hm
-            fsz, tw, th = self.fit_font(text, tavail, ht)
+            fsz, tw, th, fitted = self.fit_font(text, tavail, ht)
             tleft = tright - tw
             if self.layout == "qr_right":
                 tbottom = vm + (ht - th)/2
@@ -137,7 +135,7 @@ class LabelSpec(object):
             qbottom = vm + ht + (ht - qs) / 2
             tright = qleft - hg
             tavail = tright - hm
-            fsz, tw, th = self.fit_font(text, tavail, ht)
+            fsz, tw, th, fitted = self.fit_font(text, tavail, ht)
             tleft = tright - tw
             tbottom = vm + ht + (ht - th)/2
             hspace = width - (hm + tw + hg + qs + hm)
@@ -152,7 +150,7 @@ class LabelSpec(object):
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
             twavail = wd
             thavail = qbottom - 2*vm
-            fsz, tw, th = self.fit_font(text, twavail, thavail)
+            fsz, tw, th, fitted = self.fit_font(text, twavail, thavail)
             tbottom = vm + (qbottom -2*vm - th)/2
             tleft = hm + (wd-tw)/2
             label.add(shapes.String(tleft, tbottom, text, fontName=self.font_name, fontSize=fsz))
@@ -163,7 +161,7 @@ class LabelSpec(object):
             label.add(shapes.Image(qleft, qbottom, qs, qs, self.qrimg(obj)))
             twavail = height - 2*vm
             thavail = width - 3*hm - qs
-            fsz, tw, th = self.fit_font(text, twavail, thavail)
+            fsz, tw, th, fitted = self.fit_font(text, twavail, thavail)
             tbottom = vm + (twavail - tw)/2
             tleft = qleft + qs + hm
             group = shapes.Group()
@@ -174,7 +172,7 @@ class LabelSpec(object):
         elif self.layout == "qr_right_verticaltext":
             twavail = height - 2*vm
             thavail = width - 2*hm - hg - qs
-            fsz, tw, th = self.fit_font(text, twavail, thavail)
+            fsz, tw, th, fitted = self.fit_font(text, twavail, thavail)
             tbottom = vm + (twavail - tw)/2
             tleft = hm
             group = shapes.Group()
@@ -187,7 +185,7 @@ class LabelSpec(object):
 
         elif self.layout.startswith("multiline_text"):
             tavail = wd - hm
-            fsz, tw, th = self.fit_font(longest_line, tavail, ht/n_lines)
+            fsz, tw, th, fitted = self.fit_font(longest_line, tavail, ht/n_lines)
             tbottom = vm + (ht - th*n_lines)/2
             for i, line in enumerate(reversed(lines)):
                 if self.layout == "multiline_text":
@@ -197,6 +195,27 @@ class LabelSpec(object):
                     tleft = wd - tw
                 label.add(shapes.String(tleft, tbottom + i * th, line, fontName=self.font_name, fontSize=fsz))
 
+        elif self.layout == "topleft_topright_bottomwrap":
+            tavail = wd - 2*hm
+            text_topleft, text_topright = lines[:2]
+            top_theight = (height - 3*vm) / 3
+            fsz, tw, th, fitted = self.fit_font(text_topleft, tavail/2, top_theight)
+            label.add(shapes.String(hm, height - (vm+th), text_topleft, fontName=self.font_name, fontSize=fsz))
+            fsz, tw, th, fitted = self.fit_font(text_topright, tavail/2, top_theight)
+            label.add(shapes.String(width - hm - tw, height - (vm +th), text_topright, fontName=self.font_name, fontSize=fsz))
+
+            rest_vavail = height - top_theight - 2* vm
+            if len(lines[2]) < 1:
+                return
+            for n_lines in range(1, 6):
+                text_rest = textwrap.wrap(lines[2], int(len(lines[2])/n_lines))
+                longest_line = max(text_rest, key=lambda x: len(x))
+                fsz, tw, th, fitted = self.fit_font(longest_line, tavail, rest_vavail/len(text_rest))
+                if fitted and fsz >= self.font_size*0.5:
+                    break
+            for i, line in enumerate(reversed(text_rest)):
+                label.add(shapes.String(hm, vm + i * th, line, fontName=self.font_name, fontSize=fsz))
+
         elif self.layout == "qr_multiline":
             qleft = hm
             qbottom = vm + (ht - qs) / 2
@@ -204,11 +223,29 @@ class LabelSpec(object):
 
             tleft = qleft + qs + hg
             tavail = wd - tleft
-            fsz, tw, th = self.fit_font(longest_line, tavail, ht/n_lines)
+            fsz, tw, th, fitted = self.fit_font(longest_line, tavail, ht/n_lines)
             tbottom = vm + (ht - th*n_lines)
             for i, line in enumerate(reversed(lines)):
                 label.add(shapes.String(tleft, tbottom + i * th, line, fontName=self.font_name, fontSize=fsz))
     
+class AddressLabels(LabelSpec):
+    description = "12 sheets, each label is a vertical third of A6 (2x6)"
+    font_name = "Helvetica"
+    font_size = 24
+    name = "AddressLabels"
+    qrsize = 16*mm
+    hmargin=4*mm
+    vmargin=4*mm
+    page = {
+            "sheet_width": 210, "sheet_height": 297,
+            "columns": 2, "rows": 6,
+            "label_width": 104, "label_height": 48,
+            "corner_radius": 0,
+            "left_margin": 1, "right_margin": 1,
+            "top_margin": 4.5, "bottom_margin": 4.5, 
+            "row_gap": 0, "column_gap": 0,
+    }
+
 class L7636(LabelSpec):
     description = "Mid-sized rounded rectangular labels (45x22mm) in sheets of 4x12"
     font_name = "Helvetica"
@@ -301,7 +338,7 @@ class CryoLabel(LabelSpec):
     qrsize = 9*mm
     hmargin = 2*mm
     vmargin = 2*mm
-    layouts = ["qr_left", "qr_left_texttop", "qr_multiline"]
+    layouts = ["qr_left", "qr_left_texttop", "qr_multiline",  "multiline_text"]
     page = {
             "sheet_width": 210, "sheet_height": 297,
             "columns": 3, "rows": 18,
@@ -446,6 +483,7 @@ label_types = {
     "PCRPlateCryoLabel": PCRPlateCryoLabel,
     "LCRY1700": LCRY1700,
     "FelgaPET65": FelgaPET65,
+    "AddressLabels": AddressLabels,
 }
 __all__.extend(label_types.keys())
 
@@ -464,7 +502,7 @@ for lt in label_types:
         }
 
 
-def generate_labels(labeltype, text_source, copies=1, border=False, line_delim=",", background=None):
+def generate_labels(labeltype, text_source, copies=1, border=False, background=None):
     sheet = Sheet(labeltype.spec, labeltype.make_label, border=border)
     for obj in tqdm(text_source):
         sheet.add_label(obj, count=copies)
@@ -554,9 +592,8 @@ To actually do anything, you need one of the following:
     else:
         ids = [args.id_format.format(i) for i in range(args.id_start, args.id_end+1)]
 
-    sht = generate_labels(label_types[args.label_type](layout=args.layout, qrsize=args.qr_size, background=args.background, font_size=args.font_size, vmargin=args.vmargin, hmargin=args.hmargin),
-            ids, copies=args.copies, border=args.border,
-            line_delim=args.line_delim)
+    sht = generate_labels(label_types[args.label_type](layout=args.layout, qrsize=args.qr_size, background=args.background, font_size=args.font_size, vmargin=args.vmargin, hmargin=args.hmargin, line_delim=args.line_delim),
+            ids, copies=args.copies, border=args.border)
     sht.save(args.output)
 
 
